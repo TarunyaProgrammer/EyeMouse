@@ -39,5 +39,7 @@ jobs:
       - run: pnpm build:native
       - run: pnpm build
       - run: pnpm --filter @eyemouse/desktop exec electron-builder --mac --arm64 --publish always
+      - name: Verify packaged contents
+        run: scripts/verify-macos-package.sh apps/desktop/dist/mac-arm64/EyeMouse.app
       - name: Verify signed bundle
         run: scripts/verify-macos-app.sh apps/desktop/dist/mac-arm64/EyeMouse.app

@@ -15,6 +15,8 @@ The local validation is intentionally unsigned when no Developer ID identity is 
 3. a signed-build smoke test covering camera permission, Accessibility refusal, login startup and native helper launch;
 4. an update feed and release artifact hosting policy.
 
+CI also builds the unsigned arm64 DMG/ZIP and runs `scripts/verify-macos-package.sh`. That check validates the bundle metadata, executable bits, native helper, icon, local MediaPipe model/WASM payload and sandbox-compatible preload entry before any signing credentials are involved.
+
 The repository includes `.github/workflows/macos-release.yml`, which runs on `v*` tags. Configure these repository secrets before using it:
 
 - `MACOS_CERTIFICATE_P12_BASE64`
