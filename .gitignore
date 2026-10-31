@@ -1,0 +1,7 @@
+node_modules/
+apps/desktop/out/
+dist/
+.DS_Store
+
+# Local runtime state
+.impeccable/config.local.json

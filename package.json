@@ -1,0 +1,12 @@
+{
+  "name": "eyemouse",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "pnpm --filter @eyemouse/desktop dev",
+    "build": "pnpm --filter @eyemouse/desktop build",
+    "test": "pnpm --filter @eyemouse/desktop test",
+    "typecheck": "pnpm --filter @eyemouse/desktop typecheck"
+  }
+}
