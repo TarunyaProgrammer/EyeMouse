@@ -25,6 +25,8 @@ The repository includes `.github/workflows/macos-release.yml`, which runs on `v*
 
 The workflow signs, notarizes through Electron Builder, publishes the DMG/ZIP to the GitHub release, and runs the bundle verifier.
 
+After the first signed artifact is available, execute the [manual macOS acceptance protocol](testing/manual-acceptance.md) before treating the release as production-ready.
+
 For a signed release app, verify the final bundle before distribution:
 
 ```sh
