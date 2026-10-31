@@ -2,6 +2,8 @@ node_modules/
 apps/desktop/out/
 dist/
 .DS_Store
+.cache/
+native/macos/input/eyemouse-input
 
 # Local runtime state
 .impeccable/config.local.json

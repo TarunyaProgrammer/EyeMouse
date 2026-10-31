@@ -43,6 +43,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .notice { display: flex; gap: 9px; margin-top: 18px; padding: 12px 12px 12px 11px; border-radius: 10px; background: #ececf0; color: #6e7078; }
 .notice-mark { display: grid; flex: 0 0 auto; place-items: center; width: 16px; height: 16px; border: 1px solid #999ca5; border-radius: 50%; color: #737680; font-size: 10px; font-weight: 700; }
 .notice p { margin: 0; font-size: 11px; line-height: 1.45; }
+.notice-action { flex: 0 0 auto; align-self: center; padding: 5px 8px; border: 0; border-radius: 7px; color: #245eb1; background: #dfeaff; cursor: pointer; font-size: 11px; font-weight: 600; }
 .footer { display: flex; align-items: center; justify-content: space-between; margin-top: 28px; color: #777a82; font-size: 11px; }
 .setting-toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .setting-toggle input { position: absolute; opacity: 0; pointer-events: none; }
@@ -66,3 +67,17 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
   .notice { background: #303137; color: #a9abb2; }
   .notice-mark { color: #a9abb2; border-color: #777a84; }
 }
+
+.calibration-shell { position: relative; overflow: hidden; color: #f7f7f8; background: #111216; }
+.calibration-topbar { position: absolute; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; padding: 24px 30px; background: linear-gradient(rgba(17,18,22,.92), rgba(17,18,22,0)); }
+.calibration-topbar div { display: flex; align-items: baseline; gap: 12px; }
+.calibration-topbar strong { font-size: 15px; }
+.calibration-topbar span { color: #9da0aa; font-size: 12px; }
+.calibration-topbar button { border: 0; color: #c3c5cc; background: transparent; cursor: pointer; font-size: 12px; }
+.calibration-progress { position: absolute; z-index: 2; top: 0; left: 0; right: 0; height: 3px; background: #2d2f35; }
+.calibration-progress span { display: block; height: 100%; background: #6fa1ff; transition: width .2s ease; }
+.calibration-target { position: absolute; z-index: 1; display: grid; place-items: center; width: 34px; height: 34px; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,.55); border-radius: 50%; box-shadow: 0 0 0 8px rgba(111,161,255,.11), 0 0 26px rgba(111,161,255,.4); }
+.calibration-target span { width: 12px; height: 12px; border-radius: 50%; background: #6fa1ff; }
+.calibration-instructions { position: absolute; z-index: 2; bottom: 35px; left: 50%; width: 440px; transform: translateX(-50%); text-align: center; }
+.calibration-instructions p { margin: 0 0 6px; color: #f3f4f6; font-size: 14px; }
+.calibration-instructions small { color: #9da0aa; font-size: 11px; }

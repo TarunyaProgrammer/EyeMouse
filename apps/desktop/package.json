@@ -6,17 +6,19 @@
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
-    "build": "tsc --noEmit && electron-vite build",
+    "build": "tsc --noEmit && electron-vite build && node ../../scripts/copy-vision-assets.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^1.2.0",
     "@eyemouse/calibration": "workspace:*",
     "@eyemouse/gaze-estimation": "workspace:*",
     "@eyemouse/interaction-engine": "workspace:*",
     "@eyemouse/pointer-controller": "workspace:*",
     "@eyemouse/shared-types": "workspace:*",
     "@eyemouse/tracking-quality": "workspace:*",
+    "@eyemouse/vision": "workspace:*",
     "@vitejs/plugin-react": "^4.4.1",
     "electron": "^38.0.0",
     "electron-vite": "^4.0.0",

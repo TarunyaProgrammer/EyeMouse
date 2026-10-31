@@ -1,5 +1,5 @@
-import { app, ipcMain, type BrowserWindow } from "electron";
-import type { Preferences } from "@eyemouse/shared-types";
+import { app, ipcMain, screen, type BrowserWindow } from "electron";
+import type { Preferences, ScreenBounds } from "@eyemouse/shared-types";
 import { SessionCoordinator } from "../session/session-coordinator";
 import { SettingsStore } from "../settings/settings-store";
 
@@ -43,7 +43,8 @@ function validatePreferencesPatch(value: unknown): Partial<Preferences> {
 export function registerIpc(
   coordinator: SessionCoordinator,
   settings: SettingsStore,
-  getPopover: () => BrowserWindow | null
+  getPopover: () => BrowserWindow | null,
+  openCalibration: () => void
 ): void {
   ipcMain.handle("session:get-status", () => coordinator.getStatus());
   ipcMain.handle("session:start", () => coordinator.start());
@@ -57,6 +58,23 @@ export function registerIpc(
       throw new TypeError("Camera failure reason must be a non-empty string under 500 characters.");
     }
     return coordinator.setCameraFailure(reason);
+  });
+  ipcMain.handle("calibration:begin", () => coordinator.beginCalibration());
+  ipcMain.handle("calibration:open", () => {
+    coordinator.beginCalibration();
+    openCalibration();
+  });
+  ipcMain.handle("calibration:get-screen", (): ScreenBounds => {
+    const display = screen.getPrimaryDisplay();
+    return { ...display.bounds, displayId: String(display.id) };
+  });
+  ipcMain.handle("calibration:complete", (_event, result: unknown) => {
+    if (!result || typeof result !== "object") throw new TypeError("Calibration result must be an object.");
+    const value = result as Record<string, unknown>;
+    if (typeof value.calibrationId !== "string" || typeof value.displayId !== "string" || typeof value.validationErrorPx !== "number" || typeof value.accepted !== "boolean") {
+      throw new TypeError("Invalid calibration result.");
+    }
+    return coordinator.completeCalibration({ calibrationId: value.calibrationId, displayId: value.displayId, validationErrorPx: value.validationErrorPx, accepted: value.accepted });
   });
   ipcMain.handle("preferences:get", () => settings.get());
   ipcMain.handle("preferences:set", async (_event, value: unknown) => {

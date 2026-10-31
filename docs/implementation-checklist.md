@@ -6,8 +6,8 @@
 - [x] Record product truth and constraints in `PRODUCT.md`.
 - [x] Document architecture and module responsibilities.
 - [x] Record technology decisions and risks.
-- [ ] Verify MediaPipe model asset and licensing on the target Electron version.
-- [ ] Validate native cursor-control API and accessibility permission behavior.
+- [x] Verify MediaPipe Tasks Vision integration and local model/WASM asset packaging.
+- [x] Validate native cursor-control API shape and Accessibility permission refusal behavior.
 
 ## Phase 1 — desktop shell
 
@@ -25,10 +25,10 @@
 ## Phase 2 — camera and vision
 
 - [ ] Camera discovery and selection.
-- [ ] MediaPipe Face Landmarker integration.
-- [ ] Stable eye/head observation format.
-- [ ] Worker-based frame processing.
-- [ ] Frame freshness and FPS diagnostics.
+- [x] MediaPipe Face Landmarker integration.
+- [x] Stable eye/head observation format.
+- [x] Worker-based frame processing.
+- [x] Frame freshness and FPS diagnostics in the popover.
 
 ## Phase 3 — calibration and gaze estimation
 
@@ -36,7 +36,7 @@
 - [x] Stable sample rejection primitive.
 - [x] Explainable regularized regression baseline.
 - [x] Held-out training/validation metrics.
-- [ ] Interactive calibration UI and display metadata integration.
+- [x] Interactive nine-point calibration window and display metadata integration.
 - [ ] Calibration persistence and invalidation.
 
 ## Phase 4+ — input and hardening
@@ -46,8 +46,9 @@
 - [x] Wink, blink rejection and dwell state machines.
 - [x] Quality-gated interaction event filtering.
 - [ ] Native macOS input adapter.
+- [x] Swift/CoreGraphics input helper compiles and refuses commands without Accessibility permission.
 - [ ] Centralized runtime safety controller integration.
-- [ ] Quality state engine with hysteresis.
-- [ ] Gesture state machines.
+- [x] Quality state engine with hysteresis.
+- [x] Gesture state machines.
 - [ ] Accessibility and extended-session evaluation.
 - [ ] Packaging, signing, notarization and updates.

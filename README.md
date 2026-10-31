@@ -2,7 +2,7 @@
 
 Precision-first, quality-aware eye control for macOS.
 
-The repository is being built incrementally. The current slice is the Phase 1 desktop shell: a menu-bar application with an explicit session lifecycle, camera permission boundary, local settings persistence and a React popover. It does not yet move the system cursor or perform gaze estimation.
+The repository is being built incrementally. The current slice includes the menu-bar shell, local MediaPipe face-landmark inference, a nine-point calibration flow, tested gaze/quality/gesture algorithms and a compiled Swift input helper. Native cursor actions remain disabled until Accessibility permission, calibration validity and runtime safety policy all allow them.
 
 ## Requirements
 

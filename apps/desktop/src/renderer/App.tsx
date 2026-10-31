@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import type { CameraStatus, Preferences, SessionState, SessionStatus } from "@eyemouse/shared-types";
 import { CameraManager } from "./camera-manager";
+import { VisionPipeline } from "./vision-pipeline";
+import { TrackingQualityEngine } from "@eyemouse/tracking-quality";
 
 const STATE_LABELS: Record<SessionState, string> = {
   IDLE: "Ready to start",
@@ -41,7 +43,11 @@ function EyeMark(): JSX.Element {
 export function App(): JSX.Element {
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
+  const [diagnostics, setDiagnostics] = useState({ faceVisible: false, eyesVisible: false, fps: 0, error: null as string | null });
   const cameraManager = useRef(new CameraManager());
+  const visionPipeline = useRef(new VisionPipeline());
+  const qualityEngine = useRef(new TrackingQualityEngine());
+  const frameTimes = useRef<number[]>([]);
   const cameraAttemptState = useRef<SessionState | null>(null);
 
   useEffect(() => {
@@ -51,6 +57,11 @@ export function App(): JSX.Element {
     });
 
     return window.eyemouse.onSessionStatusChanged(setStatus);
+  }, []);
+
+  useEffect(() => () => {
+    visionPipeline.current.stop();
+    cameraManager.current.release();
   }, []);
 
   useEffect(() => {
@@ -74,8 +85,54 @@ export function App(): JSX.Element {
     }
 
     if (status.state !== "INITIALIZING") cameraAttemptState.current = null;
-    if (status.state === "IDLE" || status.state === "STOPPED") cameraManager.current.release();
+    if (status.state === "IDLE" || status.state === "STOPPED") {
+      visionPipeline.current.stop();
+      cameraManager.current.release();
+    }
   }, [status]);
+
+  useEffect(() => {
+    if (!status || !["CAMERA_READY", "CALIBRATION_REQUIRED", "TRACKING_ACTIVE"].includes(status.state)) return;
+    if (!cameraManager.current.getVideo()) {
+      if (status.state !== "TRACKING_ACTIVE") return;
+      const reacquireTimer = window.setTimeout(() => {
+        void cameraManager.current.requestAccess().then(() => startVisionPipeline()).catch(() => {
+          setDiagnostics((current) => ({ ...current, error: "Camera could not be reacquired after calibration." }));
+        });
+      }, 1800);
+      return () => window.clearTimeout(reacquireTimer);
+    }
+    startVisionPipeline();
+  }, [status?.state, status?.calibrationStatus]);
+
+  function startVisionPipeline(): void {
+    const video = cameraManager.current.getVideo();
+    if (!video) return;
+    void visionPipeline.current.start(video, (observation) => {
+      const now = performance.now();
+      frameTimes.current = [...frameTimes.current.filter((time) => now - time < 1000), now];
+      const quality = qualityEngine.current.evaluate({
+        nowMs: now,
+        timestampMs: observation.timestampMs,
+        cameraConnected: true,
+        faceVisible: observation.faceVisible,
+        eyesVisible: observation.leftEyeVisible && observation.rightEyeVisible,
+        landmarkStability: observation.landmarkStability,
+        headPoseStability: observation.headPose ? 1 : null,
+        estimatedErrorPx: status?.estimatedErrorPx ?? null,
+        calibrationValid: status?.calibrationStatus === "valid",
+        gestureConfidence: null
+      });
+      setDiagnostics({
+        faceVisible: observation.faceVisible,
+        eyesVisible: observation.leftEyeVisible && observation.rightEyeVisible,
+        fps: frameTimes.current.length,
+        error: quality.state === "lost" ? quality.recoveryRecommendation : null
+      });
+    }, (message) => {
+      setDiagnostics((current) => ({ ...current, error: message }));
+    });
+  }
 
   async function startCamera(): Promise<void> {
     await window.eyemouse.setCameraRequesting();
@@ -106,6 +163,12 @@ export function App(): JSX.Element {
     if (!preferences) return;
     const next = await window.eyemouse.setPreferences({ launchAtLogin: !preferences.launchAtLogin });
     setPreferences(next);
+  }
+
+  async function openCalibration(): Promise<void> {
+    visionPipeline.current.stop();
+    cameraManager.current.release();
+    await window.eyemouse.openCalibration();
   }
 
   if (!status || !preferences) return <main className="shell shell-loading">Loading EyeMouse…</main>;
@@ -144,15 +207,32 @@ export function App(): JSX.Element {
           <span className="value">{status.trackingQuality === "unknown" ? "Not measured" : status.trackingQuality}</span>
         </div>
         <div className="status-row">
+          <span>Calibration</span>
+          <span className="value">{status.calibrationStatus.replace("-", " ")}</span>
+        </div>
+        <div className="status-row">
           <span>System input</span>
           <span className="value">{status.inputEnabled ? "Enabled" : "Disabled"}</span>
         </div>
+        <div className="status-row">
+          <span>Face visibility</span>
+          <span className="value">{diagnostics.faceVisible ? "Detected" : "Not detected"}</span>
+        </div>
+        <div className="status-row">
+          <span>Both eyes</span>
+          <span className="value">{diagnostics.eyesVisible ? "Visible" : "Not confirmed"}</span>
+        </div>
+        <div className="status-row">
+          <span>Vision pipeline</span>
+          <span className="value">{diagnostics.fps > 0 ? `${diagnostics.fps} FPS` : "Starting…"}</span>
+        </div>
       </section>
 
-      {status.state === "CAMERA_READY" && (
+      {status.state === "CALIBRATION_REQUIRED" && (
         <div className="notice">
           <span className="notice-mark">i</span>
-          <p>The camera boundary is working. Eye tracking and cursor control will be added after the vision pipeline is validated.</p>
+          <p>{diagnostics.error ?? "Live face landmarks are running locally. Calibration is required before cursor control can be enabled."}</p>
+          <button className="notice-action" onClick={() => void openCalibration()}>Calibrate</button>
         </div>
       )}
 

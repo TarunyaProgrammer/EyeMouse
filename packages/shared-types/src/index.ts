@@ -34,8 +34,11 @@ export interface Preferences {
 export interface SessionStatus {
   state: SessionState;
   cameraStatus: CameraStatus;
+  calibrationStatus: "not-started" | "required" | "in-progress" | "valid" | "invalid";
   trackingQuality: TrackingQualityState;
   inputEnabled: boolean;
+  nativeInputAuthorized: boolean;
+  estimatedErrorPx: number | null;
   message: string;
   updatedAt: number;
 }
@@ -49,6 +52,9 @@ export interface EyeMouseAPI {
   setCameraRequesting(): Promise<SessionStatus>;
   setCameraReady(): Promise<SessionStatus>;
   setCameraFailure(reason: string): Promise<SessionStatus>;
+  openCalibration(): Promise<void>;
+  getCalibrationScreen(): Promise<ScreenBounds>;
+  completeCalibration(result: CalibrationResultSummary): Promise<SessionStatus>;
   getPreferences(): Promise<Preferences>;
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>;
   onSessionStatusChanged(listener: (status: SessionStatus) => void): () => void;
@@ -65,6 +71,13 @@ export interface ScreenBounds {
   width: number;
   height: number;
   displayId: string;
+}
+
+export interface CalibrationResultSummary {
+  calibrationId: string;
+  displayId: string;
+  validationErrorPx: number;
+  accepted: boolean;
 }
 
 export interface EyeTrackingObservation {
