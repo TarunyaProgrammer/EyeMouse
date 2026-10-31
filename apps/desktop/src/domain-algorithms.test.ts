@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calibrationMeetsThresholds, createCalibrationTargets, fitCalibration } from "@eyemouse/calibration";
 import { calculateValidationMetrics, fitRidgeRegression } from "@eyemouse/gaze-estimation";
-import { DwellRecognizer, WinkRecognizer, filterInteractionEvent } from "@eyemouse/interaction-engine";
+import { DwellRecognizer, ScrollRecognizer, WinkRecognizer, filterInteractionEvent } from "@eyemouse/interaction-engine";
 import { OneEuroFilter } from "@eyemouse/pointer-controller";
 import { TrackingQualityEngine } from "@eyemouse/tracking-quality";
 import { estimateTemporalStability } from "@eyemouse/vision";
@@ -117,6 +117,20 @@ describe("interaction safety", () => {
     expect(wink.observe(observation(0, 0.1, 0.8))).toHaveLength(0);
     expect(wink.observe(observation(320, 0.1, 0.8))[0]?.type).toBe("DRAG_START");
     expect(wink.observe(observation(500, 0.8, 0.8))[0]?.type).toBe("DRAG_END");
+  });
+
+  it("supports an explicitly configured double-click wink", () => {
+    const wink = new WinkRecognizer({}, "double-click");
+    expect(wink.observe(observation(0, 0.1, 0.8))).toHaveLength(0);
+    expect(wink.observe(observation(180, 0.8, 0.8))[0]?.type).toBe("DOUBLE_CLICK");
+  });
+
+  it("scrolls only after an intentional edge fixation", () => {
+    const scroll = new ScrollRecognizer({ durationMs: 100 });
+    const edgeObservation = { ...observation(0, 0.8, 0.8), normalizedPoint: { x: 0.5, y: 0.02 } };
+    expect(scroll.observe(edgeObservation)).toHaveLength(0);
+    expect(scroll.observe({ ...edgeObservation, timestampMs: 120 })[0]?.deltaY).toBe(-1);
+    expect(scroll.observe({ ...edgeObservation, timestampMs: 200 })).toHaveLength(0);
   });
 
   it("requires stable fixation for dwell", () => {

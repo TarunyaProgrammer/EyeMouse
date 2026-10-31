@@ -42,6 +42,16 @@ function validatePreferencesPatch(value: unknown): Partial<Preferences> {
     patch.interactionMode = input.interactionMode;
   }
 
+  if ("winkAction" in input) {
+    if (input.winkAction !== "single-click" && input.winkAction !== "double-click") throw new TypeError("winkAction is invalid.");
+    patch.winkAction = input.winkAction;
+  }
+
+  if ("scrollEnabled" in input) {
+    if (typeof input.scrollEnabled !== "boolean") throw new TypeError("scrollEnabled must be a boolean.");
+    patch.scrollEnabled = input.scrollEnabled;
+  }
+
   if ("cursorSensitivity" in input) {
     if (typeof input.cursorSensitivity !== "number" || !Number.isFinite(input.cursorSensitivity) || input.cursorSensitivity < 0.25 || input.cursorSensitivity > 4) {
       throw new TypeError("cursorSensitivity must be a finite number between 0.25 and 4.");

@@ -4,7 +4,7 @@ import type { CameraStatus, Preferences, SessionState, SessionStatus } from "@ey
 import { CameraManager } from "./camera-manager";
 import { VisionPipeline } from "./vision-pipeline";
 import { TrackingQualityEngine } from "@eyemouse/tracking-quality";
-import { DwellRecognizer, WinkRecognizer } from "@eyemouse/interaction-engine";
+import { DwellRecognizer, ScrollRecognizer, WinkRecognizer } from "@eyemouse/interaction-engine";
 
 const STATE_LABELS: Record<SessionState, string> = {
   IDLE: "Ready to start",
@@ -50,7 +50,10 @@ export function App(): JSX.Element {
   const qualityEngine = useRef(new TrackingQualityEngine());
   const winkRecognizer = useRef(new WinkRecognizer());
   const dwellRecognizer = useRef(new DwellRecognizer());
+  const scrollRecognizer = useRef(new ScrollRecognizer());
   const interactionMode = useRef<Preferences["interactionMode"]>("dwell");
+  const winkAction = useRef<Preferences["winkAction"]>("single-click");
+  const scrollEnabled = useRef(false);
   const frameTimes = useRef<number[]>([]);
   const cameraAttemptState = useRef<SessionState | null>(null);
 
@@ -59,6 +62,9 @@ export function App(): JSX.Element {
         setStatus(nextStatus);
         setPreferences(nextPreferences);
         interactionMode.current = nextPreferences.interactionMode;
+        winkAction.current = nextPreferences.winkAction;
+        winkRecognizer.current.setAction(nextPreferences.winkAction);
+        scrollEnabled.current = nextPreferences.scrollEnabled;
     });
 
     return window.eyemouse.onSessionStatusChanged(setStatus);
@@ -123,7 +129,12 @@ export function App(): JSX.Element {
   }, [status?.state]);
 
   useEffect(() => {
-    if (preferences) interactionMode.current = preferences.interactionMode;
+    if (preferences) {
+      interactionMode.current = preferences.interactionMode;
+      winkAction.current = preferences.winkAction;
+      winkRecognizer.current.setAction(preferences.winkAction);
+      scrollEnabled.current = preferences.scrollEnabled;
+    }
   }, [preferences]);
 
   function startVisionPipeline(): void {
@@ -159,11 +170,13 @@ export function App(): JSX.Element {
           rightEyeOpen: observation.rightEyeOpen,
           qualityState: update.quality.state,
           point: update.prediction?.point ?? null,
+          normalizedPoint: update.prediction?.normalizedPoint ?? null,
           fixationStable: update.quality.state === "good" && (observation.landmarkStability ?? 0) >= 0.65
         } as const;
-        const events = interactionMode.current === "wink"
+        const primaryEvents = interactionMode.current === "wink"
           ? winkRecognizer.current.observe(gestureObservation)
           : dwellRecognizer.current.observe(gestureObservation);
+        const events = scrollEnabled.current ? [...primaryEvents, ...scrollRecognizer.current.observe(gestureObservation)] : primaryEvents;
         for (const event of events) void window.eyemouse.publishInteraction(event);
       }).catch((error: unknown) => {
         setDiagnostics((current) => ({ ...current, error: error instanceof Error ? error.message : "Tracking update failed." }));
@@ -207,6 +220,7 @@ export function App(): JSX.Element {
     } else {
       winkRecognizer.current.reset();
       dwellRecognizer.current.reset();
+      scrollRecognizer.current.reset();
       cameraManager.current.release();
       await window.eyemouse.stopSession();
     }

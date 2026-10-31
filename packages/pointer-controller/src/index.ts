@@ -84,6 +84,11 @@ export class PointerController {
 
   async execute(command: PointerCommand, quality: TrackingQuality): Promise<boolean> {
     if (command.type === "MOVE") return command.point ? this.move(command.point, quality, command.timestampMs) : false;
+    if (command.type === "DRAG_END" && this.dragging && this.canEndDrag(quality)) {
+      this.dragging = false;
+      await this.adapter.dragEnd();
+      return true;
+    }
     if (!this.canInteract(quality)) return false;
     switch (command.type) {
       case "LEFT_CLICK": await this.adapter.click("left"); return true;
@@ -91,8 +96,8 @@ export class PointerController {
       case "DOUBLE_CLICK": await this.adapter.doubleClick(); return true;
       case "DWELL_CLICK": await this.adapter.click("left"); return true;
       case "DRAG_START": this.dragging = true; await this.adapter.dragStart(); return true;
-      case "DRAG_END": this.dragging = false; await this.adapter.dragEnd(); return true;
-      case "SCROLL": await this.adapter.scroll(-1); return true;
+      case "DRAG_END": if (!this.dragging) return false; this.dragging = false; await this.adapter.dragEnd(); return true;
+      case "SCROLL": await this.adapter.scroll(command.deltaY); return true;
       default: return false;
     }
   }
@@ -113,5 +118,9 @@ export class PointerController {
 
   private canInteract(quality: TrackingQuality): boolean {
     return quality.state === "good" && quality.inputFresh && quality.calibrationValid && quality.estimatedErrorPx !== null && quality.estimatedErrorPx <= this.maxSafeErrorPx;
+  }
+
+  private canEndDrag(quality: TrackingQuality): boolean {
+    return quality.state !== "lost" && quality.inputFresh && quality.calibrationValid;
   }
 }

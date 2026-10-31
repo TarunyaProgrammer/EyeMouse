@@ -8,6 +8,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   cameraDeviceId: null,
   calibrationDisplayId: null,
   interactionMode: "dwell",
+  winkAction: "single-click",
+  scrollEnabled: false,
   cursorSensitivity: 1,
   smoothing: 0.35
 };

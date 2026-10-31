@@ -83,7 +83,10 @@ export class TrackingRuntime {
       this.suppressedInteractions += 1;
       return false;
     }
-    const executed = await this.pointer.execute({ type: safeEvent.type, point: safeEvent.point, timestampMs: safeEvent.timestampMs }, quality);
+    const command = safeEvent.type === "SCROLL"
+      ? { type: "SCROLL" as const, point: safeEvent.point, timestampMs: safeEvent.timestampMs, deltaY: safeEvent.deltaY ?? -1 }
+      : { type: safeEvent.type, point: safeEvent.point, timestampMs: safeEvent.timestampMs };
+    const executed = await this.pointer.execute(command, quality);
     if (executed) this.acceptedInteractions += 1;
     else this.suppressedInteractions += 1;
     return executed;

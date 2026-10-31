@@ -23,6 +23,7 @@ export type CameraStatus =
 export type TrackingQualityState = "unknown" | "good" | "degraded" | "lost";
 
 export type InteractionMode = "dwell" | "wink";
+export type WinkAction = "single-click" | "double-click";
 
 export interface Preferences {
   launchAtLogin: boolean;
@@ -30,6 +31,8 @@ export interface Preferences {
   cameraDeviceId: string | null;
   calibrationDisplayId: string | null;
   interactionMode: InteractionMode;
+  winkAction: WinkAction;
+  scrollEnabled: boolean;
   cursorSensitivity: number;
   smoothing: number;
 }
@@ -195,8 +198,10 @@ export interface InteractionEvent {
   confidence: number;
   source: "left-wink" | "right-wink" | "dwell" | "keyboard" | "unknown";
   point: Point2D | null;
+  deltaY?: number;
 }
 
 export type PointerCommand =
   | { type: "MOVE"; point: Point2D; timestampMs: number }
-  | { type: Exclude<InteractionEventType, "PAUSE">; point: Point2D | null; timestampMs: number };
+  | { type: Exclude<InteractionEventType, "PAUSE" | "SCROLL">; point: Point2D | null; timestampMs: number }
+  | { type: "SCROLL"; point: Point2D | null; timestampMs: number; deltaY: number };

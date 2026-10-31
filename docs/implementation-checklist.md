@@ -56,6 +56,8 @@
 - [x] Quality state engine with hysteresis.
 - [x] Gesture state machines.
 - [x] Prolonged-wink drag start/end gesture with safe release on tracking loss.
+- [x] Configurable wink single/double click action.
+- [x] Opt-in edge-dwell scrolling with direction and cooldown.
 - [x] Runtime interaction IPC and diagnostics metrics.
 - [ ] Accessibility and extended-session evaluation.
 - [x] Unsigned DMG/ZIP packaging with native helper and local model assets.
