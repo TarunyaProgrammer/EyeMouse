@@ -62,6 +62,7 @@
 - [x] Dedicated diagnostics panel with live quality, latency and safety counts.
 - [ ] Accessibility and extended-session evaluation.
 - [x] Unsigned DMG/ZIP packaging with native helper and local model assets.
+- [x] Native EyeMouse ICNS application icon included in packaged artifacts.
 - [x] Opt-in GitHub release update mechanism and signed-artifact verification script.
 - [x] CI verification and tag-triggered signed release workflow.
 - [ ] Developer ID signing and notarization.
