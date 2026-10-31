@@ -101,6 +101,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .settings-check { justify-content: flex-start; }
 .settings-check input { width: 16px; height: 16px; accent-color: #3478d5; }
 .settings-note { margin: 16px 0 0; color: #85878e; font-size: 11px; line-height: 1.5; }
+.settings-error { margin: 12px 0 0; color: #b24c51; font-size: 11px; line-height: 1.45; }
 .settings-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 30px; color: #85878e; font-size: 11px; }
 .settings-update-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 58px; font-size: 12px; }
 .settings-update-row span:first-child { display: grid; gap: 4px; }

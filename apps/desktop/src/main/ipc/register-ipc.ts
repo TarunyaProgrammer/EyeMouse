@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
+import { BrowserWindow, ipcMain, screen, shell } from "electron";
 import type { CalibrationResultSummary, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds } from "@eyemouse/shared-types";
 import { SessionCoordinator } from "../session/session-coordinator";
 import { SettingsStore } from "../settings/settings-store";
@@ -6,6 +6,7 @@ import { TrackingRuntime } from "../tracking-runtime";
 import { MacOSInputAdapter } from "../native/macos-input";
 import { CalibrationStore, isCalibrationResult } from "../calibration/calibration-store";
 import { UpdateManager } from "../update-manager";
+import { applyLoginItemSetting, getLoginItemStatus } from "../login-item";
 
 function validatePreferencesPatch(value: unknown): Partial<Preferences> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -87,10 +88,7 @@ export function registerIpc(
   ipcMain.handle("updates:check", () => updates.check());
   ipcMain.handle("updates:download", () => updates.download());
   ipcMain.handle("updates:install", () => updates.install());
-  ipcMain.handle("app:login-item", () => {
-    const loginItem = app.getLoginItemSettings();
-    return { openAtLogin: loginItem.openAtLogin, wasOpenedAtLogin: loginItem.wasOpenedAtLogin };
-  });
+  ipcMain.handle("app:login-item", () => getLoginItemStatus());
   ipcMain.handle("session:start", () => coordinator.start());
   ipcMain.handle("session:stop", async () => {
     await runtime.stop();
@@ -162,12 +160,25 @@ export function registerIpc(
   ipcMain.handle("preferences:get", () => settings.get());
   ipcMain.handle("preferences:set", async (_event, value: unknown) => {
     const patch = validatePreferencesPatch(value);
-    const next = await settings.update(patch);
-    runtime.setPreferences(next);
-    if (patch.launchAtLogin !== undefined) {
-      app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
+    const previous = settings.get();
+    const loginItemChanged = patch.launchAtLogin !== undefined && patch.launchAtLogin !== previous.launchAtLogin;
+    if (loginItemChanged) {
+      applyLoginItemSetting(patch.launchAtLogin as boolean);
     }
-    return next;
+    try {
+      const next = await settings.update(patch);
+      runtime.setPreferences(next);
+      return next;
+    } catch (error) {
+      if (loginItemChanged) {
+        try {
+          applyLoginItemSetting(previous.launchAtLogin);
+        } catch (rollbackError) {
+          console.error("Could not roll back launch-at-login setting after preferences write failure.", rollbackError);
+        }
+      }
+      throw error;
+    }
   });
 
   coordinator.on("status-changed", (status) => {

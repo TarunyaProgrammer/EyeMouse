@@ -10,6 +10,7 @@ export function SettingsApp(): JSX.Element {
   const [displays, setDisplays] = useState<Array<{ displayId: string; width: number; height: number }>>([]);
   const [updates, setUpdates] = useState<UpdateStatus | null>(null);
   const [loginItem, setLoginItem] = useState<{ openAtLogin: boolean; wasOpenedAtLogin: boolean } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void window.eyemouse.getPreferences().then(setPreferences);
@@ -23,10 +24,18 @@ export function SettingsApp(): JSX.Element {
   const cameraOptions = useMemo(() => cameras.map((camera, index) => ({ id: camera.deviceId, label: camera.label || `Camera ${index + 1}` })), [cameras]);
 
   async function update(patch: Partial<Preferences>): Promise<void> {
-    const next = await window.eyemouse.setPreferences(patch);
-    setPreferences(next);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1200);
+    setError(null);
+    try {
+      const next = await window.eyemouse.setPreferences(patch);
+      setPreferences(next);
+      if (patch.launchAtLogin !== undefined) {
+        setLoginItem(await window.eyemouse.getLoginItemStatus());
+      }
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 1200);
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : "The setting could not be applied.");
+    }
   }
 
   if (!preferences) return <main className="settings-shell shell-loading">Loading settings…</main>;
@@ -51,6 +60,7 @@ export function SettingsApp(): JSX.Element {
         <h2>Startup and privacy</h2>
         <label className="settings-check"><input type="checkbox" checked={preferences.launchAtLogin} onChange={(event) => void update({ launchAtLogin: event.target.checked })} /><span><strong>Launch at login</strong><small>Start as a menu-bar utility after you sign in.</small></span></label>
         <p className="settings-note">Electron reports startup as {loginItem?.openAtLogin ? "enabled" : "disabled"}. The signed release smoke test should verify this value after a real login.</p>
+        {error && <p className="settings-error" role="alert">{error}</p>}
         <p className="settings-note">Camera frames, landmarks, calibration data and pointer decisions stay on this Mac. EyeMouse does not upload them.</p>
       </section>
       <section className="settings-section">

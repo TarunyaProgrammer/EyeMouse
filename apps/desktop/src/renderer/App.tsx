@@ -44,6 +44,7 @@ function EyeMark(): JSX.Element {
 export function App(): JSX.Element {
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
   const [diagnostics, setDiagnostics] = useState({ faceVisible: false, eyesVisible: false, fps: 0, frameAgeMs: null as number | null, error: null as string | null });
   const cameraManager = useRef(new CameraManager());
   const visionPipeline = useRef(new VisionPipeline());
@@ -234,8 +235,13 @@ export function App(): JSX.Element {
 
   async function toggleLaunchAtLogin(): Promise<void> {
     if (!preferences) return;
-    const next = await window.eyemouse.setPreferences({ launchAtLogin: !preferences.launchAtLogin });
-    setPreferences(next);
+    setPreferencesError(null);
+    try {
+      const next = await window.eyemouse.setPreferences({ launchAtLogin: !preferences.launchAtLogin });
+      setPreferences(next);
+    } catch (error) {
+      setPreferencesError(error instanceof Error ? error.message : "Launch at login could not be configured.");
+    }
   }
 
   async function openCalibration(): Promise<void> {
@@ -333,6 +339,7 @@ export function App(): JSX.Element {
         <button className="footer-link" onClick={() => void window.eyemouse.openDiagnostics()}>Diagnostics</button>
         <span className="footer-version">v0.1</span>
       </footer>
+      {preferencesError && <p className="settings-error" role="alert">{preferencesError}</p>}
     </main>
   );
 }

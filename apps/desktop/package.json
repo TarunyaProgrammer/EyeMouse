@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit && electron-vite build && node ../../scripts/copy-vision-assets.mjs",
-    "package:mac": "pnpm --dir ../.. build:native && pnpm build && electron-builder --mac --arm64",
+    "package:mac": "pnpm --dir ../.. build:native && pnpm build && electron-builder --mac --arm64 --publish never",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },

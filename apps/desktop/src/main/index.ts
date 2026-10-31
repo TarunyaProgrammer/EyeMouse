@@ -10,6 +10,7 @@ import { PointerController } from "@eyemouse/pointer-controller";
 import { TrackingRuntime } from "./tracking-runtime";
 import { CalibrationStore, matchesDisplay } from "./calibration/calibration-store";
 import { UpdateManager } from "./update-manager";
+import { applyLoginItemSetting } from "./login-item";
 
 let popover: ReturnType<typeof createPopover> | null = null;
 let tray: ReturnType<typeof createTray> | null = null;
@@ -99,7 +100,11 @@ app.whenReady().then(async () => {
 
   const settings = new SettingsStore(join(app.getPath("userData"), "preferences.json"));
   const preferences = await settings.load();
-  app.setLoginItemSettings({ openAtLogin: preferences.launchAtLogin });
+  try {
+    applyLoginItemSetting(preferences.launchAtLogin);
+  } catch (error) {
+    console.error(error);
+  }
 
   const coordinator = new SessionCoordinator();
   const updates = new UpdateManager();
