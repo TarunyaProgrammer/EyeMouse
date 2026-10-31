@@ -221,7 +221,7 @@ export function App(): JSX.Element {
   async function openCalibration(): Promise<void> {
     visionPipeline.current.stop();
     cameraManager.current.release();
-    await window.eyemouse.openCalibration();
+    await window.eyemouse.openCalibration(preferences?.calibrationDisplayId ?? undefined);
   }
 
   if (!status || !preferences) return <main className="shell shell-loading">Loading EyeMouse…</main>;

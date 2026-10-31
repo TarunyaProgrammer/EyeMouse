@@ -18,13 +18,15 @@
 - [x] Camera permission boundary and teardown.
 - [x] Atomic local preferences.
 - [x] Login-start preference wiring.
+- [x] Dedicated settings window for interaction, camera and startup preferences.
+- [x] First-run privacy and permission onboarding.
 - [x] Unit tests for lifecycle transitions.
 - [ ] Add signed-build verification for login startup.
-- [ ] Add a dedicated settings window.
 
 ## Phase 2 — camera and vision
 
-- [ ] Camera discovery and selection.
+- [x] Camera discovery and selection.
+- [x] Camera disconnect detection and teardown.
 - [x] MediaPipe Face Landmarker integration.
 - [x] Stable eye/head observation format.
 - [x] Worker-based frame processing.
@@ -37,7 +39,8 @@
 - [x] Explainable regularized regression baseline.
 - [x] Held-out training/validation metrics.
 - [x] Interactive nine-point calibration window and display metadata integration.
-- [ ] Calibration persistence and invalidation.
+- [x] Calibration persistence and display-geometry invalidation.
+- [x] Multi-display enumeration and display-specific calibration targeting.
 
 ## Phase 4+ — input and hardening
 
@@ -50,5 +53,7 @@
 - [x] Centralized runtime safety controller integration for movement.
 - [x] Quality state engine with hysteresis.
 - [x] Gesture state machines.
+- [x] Runtime interaction IPC and diagnostics metrics.
 - [ ] Accessibility and extended-session evaluation.
-- [ ] Packaging, signing, notarization and updates.
+- [x] Unsigned DMG/ZIP packaging with native helper and local model assets.
+- [ ] Developer ID signing, notarization and update feed.

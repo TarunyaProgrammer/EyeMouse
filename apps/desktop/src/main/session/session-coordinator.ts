@@ -121,6 +121,7 @@ export class SessionCoordinator extends EventEmitter {
   }
 
   beginCalibration(): SessionStatus {
+    if (this.machine.state === "TRACKING_ACTIVE" || this.machine.state === "TRACKING_DEGRADED" || this.machine.state === "TRACKING_LOST") this.machine.transition("CALIBRATION_REQUIRED");
     if (this.machine.state === "CALIBRATION_REQUIRED" || this.machine.state === "CAMERA_READY") {
       this.calibrationStatus = "in-progress";
       this.message = "Calibration is in progress. System input remains disabled.";

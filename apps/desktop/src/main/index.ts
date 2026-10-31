@@ -18,14 +18,15 @@ let onboardingWindow: BrowserWindow | null = null;
 let nativeInput: MacOSInputAdapter | null = null;
 let trackingRuntime: TrackingRuntime | null = null;
 
-function openCalibrationWindow(): void {
+function openCalibrationWindow(displayId?: string): void {
   if (calibrationWindow && !calibrationWindow.isDestroyed()) {
     calibrationWindow.show();
     calibrationWindow.focus();
     return;
   }
 
-  const bounds = screen.getPrimaryDisplay().bounds;
+  const display = displayId ? screen.getAllDisplays().find((candidate) => String(candidate.id) === displayId) ?? screen.getPrimaryDisplay() : screen.getPrimaryDisplay();
+  const bounds = display.bounds;
   calibrationWindow = new BrowserWindow({
     x: bounds.x,
     y: bounds.y,
@@ -98,7 +99,9 @@ app.whenReady().then(async () => {
   const coordinator = new SessionCoordinator();
   const calibrationStore = new CalibrationStore(join(app.getPath("userData"), "calibration.json"));
   const storedCalibration = await calibrationStore.load();
-  const display = screen.getPrimaryDisplay();
+  const display = preferences.calibrationDisplayId
+    ? screen.getAllDisplays().find((candidate) => String(candidate.id) === preferences.calibrationDisplayId) ?? screen.getPrimaryDisplay()
+    : screen.getPrimaryDisplay();
   const activeCalibration = storedCalibration && matchesDisplay(storedCalibration, { id: String(display.id), ...display.bounds }) ? storedCalibration : null;
   nativeInput = new MacOSInputAdapter();
   const pointerController = new PointerController(nativeInput);

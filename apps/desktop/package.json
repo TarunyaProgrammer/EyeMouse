@@ -1,17 +1,19 @@
 {
   "name": "@eyemouse/desktop",
   "version": "0.1.0",
+  "description": "Privacy-first eye control for macOS",
+  "author": "EyeMouse",
   "private": true,
   "type": "module",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "tsc --noEmit && electron-vite build && node ../../scripts/copy-vision-assets.mjs",
+    "package:mac": "pnpm --dir ../.. build:native && pnpm build && electron-builder --mac --arm64",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "^1.2.0",
     "@eyemouse/calibration": "workspace:*",
     "@eyemouse/gaze-estimation": "workspace:*",
     "@eyemouse/interaction-engine": "workspace:*",
@@ -19,8 +21,8 @@
     "@eyemouse/shared-types": "workspace:*",
     "@eyemouse/tracking-quality": "workspace:*",
     "@eyemouse/vision": "workspace:*",
+    "@mediapipe/tasks-vision": "^1.2.0",
     "@vitejs/plugin-react": "^4.4.1",
-    "electron": "^38.0.0",
     "electron-vite": "^4.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -30,7 +32,33 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
+    "electron-builder": "^26.18.0",
+    "electron": "^38.0.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
+  },
+  "build": {
+    "appId": "com.eyemouse.desktop",
+    "productName": "EyeMouse",
+    "asar": true,
+    "files": ["out/**/*", "package.json"],
+    "extraResources": [
+      {
+        "from": "../../native/macos/input/eyemouse-input",
+        "to": "native/eyemouse-input",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": ["dmg", "zip"],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "dmg": {
+      "title": "EyeMouse"
+    }
   }
 }

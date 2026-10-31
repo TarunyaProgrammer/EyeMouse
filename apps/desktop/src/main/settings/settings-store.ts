@@ -6,6 +6,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   launchAtLogin: false,
   onboardingComplete: false,
   cameraDeviceId: null,
+  calibrationDisplayId: null,
   interactionMode: "dwell",
   cursorSensitivity: 1,
   smoothing: 0.35

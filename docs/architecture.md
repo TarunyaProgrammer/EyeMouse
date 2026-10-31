@@ -35,7 +35,7 @@ flowchart LR
   Main --> Preferences[Atomic JSON SettingsStore]
 ```
 
-The renderer requests camera access through `CameraManager`, but it does not run vision algorithms or emit system input. The main process owns lifecycle state and the future safety boundary. This is a temporary Phase 1 camera placement; MediaPipe processing should move behind a worker or a dedicated vision module before active pointer control is implemented.
+The renderer requests camera access through `CameraManager` and runs MediaPipe inference in a bounded worker pipeline. It publishes observations and gesture candidates through typed IPC; it never emits native input. The main process owns lifecycle state, calibration persistence, quality gating, interaction filtering and the native adapter boundary.
 
 The first algorithm packages now exist as executable boundaries:
 
@@ -55,9 +55,10 @@ The first algorithm packages now exist as executable boundaries:
 | `SessionCoordinator` | Session status and safety-relevant lifecycle orchestration | Gaze estimation |
 | `CameraManager` | Browser camera permission and stream teardown | Facial landmark interpretation |
 | `SettingsStore` | Local preferences with atomic writes | Calibration persistence |
-| `React renderer` | Status presentation and user controls | Native input or quality decisions |
-| Future `TrackingQualityEngine` | Independent quality dimensions and hysteresis | UI rendering |
-| Future `NativeInputAdapter` | Accessibility checks and system events | Gesture recognition |
+| `React renderer` | Camera boundary, worker orchestration, status presentation and user controls | Native input or final safety decisions |
+| `TrackingQualityEngine` | Independent quality dimensions and hysteresis | UI rendering |
+| `NativeInputAdapter` | Accessibility checks and system events | Gesture recognition |
+| `CalibrationStore` | Atomic local calibration profile persistence and display invalidation | Runtime quality decisions |
 
 ## Technology decisions
 
@@ -67,7 +68,7 @@ The first algorithm packages now exist as executable boundaries:
 - Vitest covers deterministic state and numerical logic.
 - JSON preferences are sufficient for Phase 1. SQLite is deferred until calibration profiles require transactional, queryable storage.
 - Electron's login-item API is wrapped at the main-process boundary for Phase 1. Native Service Management integration remains a hardening task and must be verified on signed builds.
-- MediaPipe and native input are not added until the first shell can be built and tested independently.
+- MediaPipe assets and native input are packaged only after the shell can be built and tested independently.
 
 ## Non-negotiable safety invariants
 

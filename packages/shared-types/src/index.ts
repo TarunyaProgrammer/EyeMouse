@@ -28,6 +28,7 @@ export interface Preferences {
   launchAtLogin: boolean;
   onboardingComplete: boolean;
   cameraDeviceId: string | null;
+  calibrationDisplayId: string | null;
   interactionMode: InteractionMode;
   cursorSensitivity: number;
   smoothing: number;
@@ -65,8 +66,9 @@ export interface EyeMouseAPI {
   setCameraRequesting(): Promise<SessionStatus>;
   setCameraReady(): Promise<SessionStatus>;
   setCameraFailure(reason: string): Promise<SessionStatus>;
-  openCalibration(): Promise<void>;
+  openCalibration(displayId?: string): Promise<void>;
   getCalibrationScreen(): Promise<ScreenBounds>;
+  getDisplays(): Promise<ScreenBounds[]>;
   completeCalibration(result: CalibrationResultSummary): Promise<SessionStatus>;
   publishObservation(observation: EyeTrackingObservation): Promise<TrackingUpdate | null>;
   publishInteraction(event: InteractionEvent): Promise<boolean>;

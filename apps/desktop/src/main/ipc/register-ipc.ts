@@ -1,4 +1,4 @@
-import { app, ipcMain, screen, shell, type BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
 import type { CalibrationResultSummary, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds } from "@eyemouse/shared-types";
 import { SessionCoordinator } from "../session/session-coordinator";
 import { SettingsStore } from "../settings/settings-store";
@@ -29,6 +29,11 @@ function validatePreferencesPatch(value: unknown): Partial<Preferences> {
     patch.cameraDeviceId = input.cameraDeviceId as string | null;
   }
 
+  if ("calibrationDisplayId" in input) {
+    if (input.calibrationDisplayId !== null && (typeof input.calibrationDisplayId !== "string" || input.calibrationDisplayId.length > 100)) throw new TypeError("calibrationDisplayId must be null or a valid display identifier.");
+    patch.calibrationDisplayId = input.calibrationDisplayId as string | null;
+  }
+
   if ("interactionMode" in input) {
     if (input.interactionMode !== "dwell" && input.interactionMode !== "wink") {
       throw new TypeError("interactionMode is invalid.");
@@ -57,7 +62,7 @@ export function registerIpc(
   coordinator: SessionCoordinator,
   settings: SettingsStore,
   getPopover: () => BrowserWindow | null,
-  openCalibration: () => void,
+  openCalibration: (displayId?: string) => void,
   openSettings: () => void,
   runtime: TrackingRuntime,
   nativeInput: MacOSInputAdapter,
@@ -81,14 +86,17 @@ export function registerIpc(
     return coordinator.setCameraFailure(reason);
   });
   ipcMain.handle("calibration:begin", () => coordinator.beginCalibration());
-  ipcMain.handle("calibration:open", () => {
+  ipcMain.handle("calibration:open", (_event, displayId: unknown) => {
+    if (displayId !== undefined && typeof displayId !== "string") throw new TypeError("Display identifier must be a string.");
     coordinator.beginCalibration();
-    openCalibration();
+    openCalibration(displayId as string | undefined);
   });
-  ipcMain.handle("calibration:get-screen", (): ScreenBounds => {
-    const display = screen.getPrimaryDisplay();
+  ipcMain.handle("calibration:get-screen", (event): ScreenBounds => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+    const display = window ? screen.getDisplayMatching(window.getBounds()) : screen.getPrimaryDisplay();
     return { ...display.bounds, displayId: String(display.id) };
   });
+  ipcMain.handle("display:get-all", (): ScreenBounds[] => screen.getAllDisplays().map((display) => ({ ...display.bounds, displayId: String(display.id) })));
   ipcMain.handle("calibration:complete", async (_event, result: unknown) => {
     if (!isCalibrationResult(result)) {
       throw new TypeError("Invalid calibration result.");

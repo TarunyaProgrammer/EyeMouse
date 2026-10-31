@@ -104,10 +104,8 @@ export class TrackingRuntime {
 
   async stop(): Promise<void> {
     await this.pointer.stop();
-    this.model = null;
-    this.calibrationId = null;
-    this.screenBounds = null;
-    this.validationErrorPx = null;
+    // Keep the validated profile for the next explicit session start. Stopping
+    // must disable input, not force a returning user through calibration again.
     this.lastQuality = null;
     this.frameTimes.length = 0;
     this.lastObservationAt = null;
