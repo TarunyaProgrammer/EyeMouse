@@ -61,7 +61,7 @@ export class PointerController {
   private lastPoint: Point2D | null = null;
   private dragging = false;
 
-  constructor(private readonly adapter: NativeInputAdapter, private readonly maxSafeErrorPx = 140) {}
+  constructor(private readonly adapter: NativeInputAdapter, private readonly maxSafeErrorPx = 140, private readonly maxJumpPx = 650, private readonly deadZonePx = 1) {}
 
   setSmoothing(smoothing: number): void {
     this.xFilter.configureSmoothing(smoothing);
@@ -71,10 +71,12 @@ export class PointerController {
   async move(point: Point2D, quality: TrackingQuality, timestampMs: number): Promise<boolean> {
     if (!this.canMove(quality)) return false;
     const speed = this.lastPoint === null ? 0 : Math.hypot(point.x - this.lastPoint.x, point.y - this.lastPoint.y);
+    if (this.lastPoint !== null && speed > this.maxJumpPx) return false;
     const filtered = {
       x: this.xFilter.filter(point.x, timestampMs, speed),
       y: this.yFilter.filter(point.y, timestampMs, speed)
     };
+    if (this.lastPoint !== null && Math.hypot(filtered.x - this.lastPoint.x, filtered.y - this.lastPoint.y) < this.deadZonePx) return true;
     this.lastPoint = filtered;
     await this.adapter.move(filtered);
     return true;

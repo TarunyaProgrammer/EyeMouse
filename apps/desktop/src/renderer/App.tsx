@@ -212,6 +212,12 @@ export function App(): JSX.Element {
     }
   }
 
+  async function togglePause(): Promise<void> {
+    if (!status) return;
+    if (status.state === "PAUSED") await window.eyemouse.resumeSession();
+    else if (["TRACKING_ACTIVE", "TRACKING_DEGRADED", "TRACKING_LOST"].includes(status.state)) await window.eyemouse.pauseSession();
+  }
+
   async function toggleLaunchAtLogin(): Promise<void> {
     if (!preferences) return;
     const next = await window.eyemouse.setPreferences({ launchAtLogin: !preferences.launchAtLogin });
@@ -249,6 +255,7 @@ export function App(): JSX.Element {
       <button className={`primary-action ${canStart ? "" : "secondary-action"}`} onClick={() => void toggleSession()}>
         <span>{canStart ? "Start session" : "Stop session"}</span>
       </button>
+      {(["TRACKING_ACTIVE", "TRACKING_DEGRADED", "TRACKING_LOST", "PAUSED"].includes(status.state)) && <button className="pause-action" onClick={() => void togglePause()}>{status.state === "PAUSED" ? "Resume tracking" : "Pause immediately"}</button>}
 
       <section className="status-list" aria-label="Session details">
         <div className="status-row">

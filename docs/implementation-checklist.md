@@ -51,6 +51,7 @@
 - [x] Native macOS input helper and main-process adapter.
 - [x] Swift/CoreGraphics input helper compiles and refuses commands without Accessibility permission.
 - [x] Centralized runtime safety controller integration for movement.
+- [x] Emergency pause control, quality-state transitions and pointer outlier/dead-zone guards.
 - [x] Quality state engine with hysteresis.
 - [x] Gesture state machines.
 - [x] Runtime interaction IPC and diagnostics metrics.

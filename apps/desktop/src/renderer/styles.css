@@ -35,6 +35,8 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .primary-action:disabled { cursor: progress; opacity: .65; }
 .secondary-action { color: #26272b; background: #e7e7e9; }
 .secondary-action:hover:not(:disabled) { background: #dddddf; }
+.pause-action { display: block; width: 100%; margin-top: 8px; padding: 8px; border: 0; border-radius: 8px; color: #8d4b3d; background: #f3e4df; cursor: pointer; font-size: 11px; font-weight: 650; }
+.pause-action:hover { background: #efd9d2; }
 .action-key { color: #999ba2; font-size: 11px; font-weight: 500; }
 .status-list { margin-top: 22px; border-top: 1px solid #e4e4e6; }
 .status-row { display: flex; align-items: center; justify-content: space-between; min-height: 42px; border-bottom: 1px solid #e4e4e6; color: #6c6f77; font-size: 12px; }
