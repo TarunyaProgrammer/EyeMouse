@@ -53,6 +53,7 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .setting-toggle input:checked + .toggle-track span { transform: translateX(11px); }
 .setting-toggle input:focus-visible + .toggle-track { outline: 3px solid rgba(68, 121, 235, .38); outline-offset: 2px; }
 .footer-version { color: #a4a6ac; font-variant-numeric: tabular-nums; }
+.footer-link { padding: 0; border: 0; color: #4a78bf; background: transparent; cursor: pointer; font-size: 11px; }
 
 @media (prefers-color-scheme: dark) {
   :root { color: #f1f1f3; background: #242529; }
@@ -81,3 +82,41 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .calibration-instructions { position: absolute; z-index: 2; bottom: 35px; left: 50%; width: 440px; transform: translateX(-50%); text-align: center; }
 .calibration-instructions p { margin: 0 0 6px; color: #f3f4f6; font-size: 14px; }
 .calibration-instructions small { color: #9da0aa; font-size: 11px; }
+
+.settings-shell { min-height: 100vh; padding: 34px 38px 28px; color: #1f2024; background: #f7f7f8; }
+.settings-header { display: flex; justify-content: space-between; gap: 20px; }
+.eyebrow { margin: 0 0 8px; color: #7c7f87; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.settings-header h1, .onboarding-shell h1 { margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -.045em; }
+.settings-subtitle { margin: 8px 0 0; color: #777a82; font-size: 13px; }
+.close-button { width: 28px; height: 28px; border: 0; border-radius: 50%; color: #777a82; background: #e7e7e9; cursor: pointer; font-size: 20px; line-height: 1; }
+.settings-section { margin-top: 30px; padding-top: 18px; border-top: 1px solid #dfdfe2; }
+.settings-section h2 { margin: 0 0 14px; font-size: 13px; }
+.settings-field, .settings-check { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 58px; border-bottom: 1px solid #e4e4e6; font-size: 12px; }
+.settings-field span, .settings-check span { display: grid; gap: 4px; }
+.settings-field small, .settings-check small { color: #85878e; font-size: 11px; }
+.settings-field select { min-width: 138px; padding: 7px 9px; border: 1px solid #d0d1d5; border-radius: 7px; color: #2f3136; background: #fff; }
+.settings-range input { width: 160px; accent-color: #3478d5; }
+.settings-check { justify-content: flex-start; }
+.settings-check input { width: 16px; height: 16px; accent-color: #3478d5; }
+.settings-note { margin: 16px 0 0; color: #85878e; font-size: 11px; line-height: 1.5; }
+.settings-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 30px; color: #85878e; font-size: 11px; }
+.secondary-button { padding: 8px 11px; border: 0; border-radius: 8px; color: #2f5eaa; background: #e0eaff; cursor: pointer; font-size: 11px; font-weight: 650; }
+.onboarding-shell { display: flex; flex-direction: column; min-height: 100vh; padding: 74px 64px 46px; color: #f4f5f7; background: #15161a; }
+.onboarding-mark { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 42px; border-radius: 15px; color: #15161a; background: #f4f5f7; font-size: 25px; }
+.onboarding-shell .eyebrow { color: #9da0aa; }
+.onboarding-shell h1 { max-width: 13ch; color: #f4f5f7; font-size: 38px; }
+.onboarding-body { max-width: 40ch; margin: 18px 0 0; color: #b6b8c0; font-size: 15px; line-height: 1.55; }
+.onboarding-progress { display: flex; gap: 6px; margin-top: auto; }
+.onboarding-progress span { width: 24px; height: 3px; border-radius: 3px; background: #3a3c43; }
+.onboarding-progress span.active { background: #77a7ff; }
+.onboarding-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 28px; }
+.onboarding-actions .primary-action { width: auto; min-width: 126px; padding: 0 18px; }
+.onboarding-actions .secondary-button { color: #d2d4da; background: #2c2e34; }
+
+@media (prefers-color-scheme: dark) {
+  .settings-shell { color: #f1f1f3; background: #242529; }
+  .settings-section { border-color: #3b3c42; }
+  .settings-field, .settings-check { border-color: #3b3c42; }
+  .settings-field select { color: #e2e2e5; border-color: #555761; background: #303137; }
+  .settings-subtitle, .settings-field small, .settings-check small, .settings-note, .settings-footer { color: #999ba3; }
+}

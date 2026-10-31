@@ -3,6 +3,7 @@ import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, Int
 
 const api: EyeMouseAPI = {
   getSessionStatus: () => ipcRenderer.invoke("session:get-status"),
+  getDiagnostics: () => ipcRenderer.invoke("diagnostics:get"),
   startSession: () => ipcRenderer.invoke("session:start"),
   stopSession: () => ipcRenderer.invoke("session:stop"),
   pauseSession: () => ipcRenderer.invoke("session:pause"),
@@ -17,6 +18,7 @@ const api: EyeMouseAPI = {
   publishInteraction: (event: InteractionEvent): Promise<boolean> => ipcRenderer.invoke("tracking:interaction", event),
   checkNativeInput: () => ipcRenderer.invoke("native:check"),
   openAccessibilitySettings: () => ipcRenderer.invoke("native:open-settings"),
+  openSettings: () => ipcRenderer.invoke("settings:open"),
   getPreferences: () => ipcRenderer.invoke("preferences:get"),
   setPreferences: (patch: Partial<Preferences>) => ipcRenderer.invoke("preferences:set", patch),
   onSessionStatusChanged: (listener: (status: SessionStatus) => void) => {

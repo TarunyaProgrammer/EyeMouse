@@ -1,4 +1,4 @@
-import type { CalibrationResultSummary, EyeTrackingObservation, GazePrediction, InteractionEvent, TrackingQuality, TrackingUpdate } from "@eyemouse/shared-types";
+import type { CalibrationResultSummary, DiagnosticsSnapshot, EyeTrackingObservation, GazePrediction, InteractionEvent, Preferences, TrackingQuality, TrackingUpdate } from "@eyemouse/shared-types";
 import { deserializeRegressionModel, type RegressionModel } from "@eyemouse/gaze-estimation";
 import { TrackingQualityEngine, type QualityInput } from "@eyemouse/tracking-quality";
 import { PointerController } from "@eyemouse/pointer-controller";
@@ -12,6 +12,12 @@ export class TrackingRuntime {
   private validationErrorPx: number | null = null;
   private lastQuality: TrackingQuality | null = null;
   private readonly qualityEngine = new TrackingQualityEngine();
+  private cursorSensitivity = 1;
+  private readonly frameTimes: number[] = [];
+  private lastObservationAt: number | null = null;
+  private observationCount = 0;
+  private acceptedInteractions = 0;
+  private suppressedInteractions = 0;
 
   constructor(private readonly coordinator: SessionCoordinator, private readonly pointer: PointerController) {}
 
@@ -22,9 +28,18 @@ export class TrackingRuntime {
     this.validationErrorPx = result.accepted ? result.validationErrorPx : null;
   }
 
+  setPreferences(preferences: Preferences): void {
+    this.cursorSensitivity = preferences.cursorSensitivity;
+    this.pointer.setSmoothing(preferences.smoothing);
+  }
+
   async processObservation(observation: EyeTrackingObservation): Promise<TrackingUpdate | null> {
     if (!this.model || this.validationErrorPx === null) return null;
     const nowMs = performance.now();
+    this.lastObservationAt = nowMs;
+    this.observationCount += 1;
+    this.frameTimes.push(nowMs);
+    while (this.frameTimes.length > 0 && nowMs - this.frameTimes[0] > 1000) this.frameTimes.shift();
     const qualityInput: QualityInput = {
       nowMs,
       timestampMs: observation.timestampMs,
@@ -40,7 +55,7 @@ export class TrackingRuntime {
     const quality = this.qualityEngine.evaluate(qualityInput);
     this.lastQuality = quality;
     this.coordinator.setTrackingQuality(quality.state, quality.estimatedErrorPx);
-    const point = this.model.predict(observation.normalizedFeatures);
+    const point = this.applySensitivity(this.model.predict(observation.normalizedFeatures));
     const bounds = this.screenBounds;
     const normalizedPoint = bounds
       ? { x: (point.x - bounds.x) / bounds.width, y: (point.y - bounds.y) / bounds.height }
@@ -63,8 +78,28 @@ export class TrackingRuntime {
     const quality = this.lastQuality;
     if (!quality) return false;
     const safeEvent = filterInteractionEvent(event, quality.state, quality.estimatedErrorPx);
-    if (!safeEvent || safeEvent.type === "PAUSE") return false;
-    return this.pointer.execute({ type: safeEvent.type, point: safeEvent.point, timestampMs: safeEvent.timestampMs }, quality);
+    if (!safeEvent || safeEvent.type === "PAUSE") {
+      this.suppressedInteractions += 1;
+      return false;
+    }
+    const executed = await this.pointer.execute({ type: safeEvent.type, point: safeEvent.point, timestampMs: safeEvent.timestampMs }, quality);
+    if (executed) this.acceptedInteractions += 1;
+    else this.suppressedInteractions += 1;
+    return executed;
+  }
+
+  getDiagnostics(): DiagnosticsSnapshot {
+    const nowMs = performance.now();
+    while (this.frameTimes.length > 0 && nowMs - this.frameTimes[0] > 1000) this.frameTimes.shift();
+    return {
+      fps: this.frameTimes.length,
+      frameAgeMs: this.lastObservationAt === null ? null : Math.max(0, nowMs - this.lastObservationAt),
+      observations: this.observationCount,
+      acceptedInteractions: this.acceptedInteractions,
+      suppressedInteractions: this.suppressedInteractions,
+      qualityState: this.lastQuality?.state ?? "unknown",
+      lastRecoveryRecommendation: this.lastQuality?.recoveryRecommendation ?? null
+    };
   }
 
   async stop(): Promise<void> {
@@ -74,5 +109,19 @@ export class TrackingRuntime {
     this.screenBounds = null;
     this.validationErrorPx = null;
     this.lastQuality = null;
+    this.frameTimes.length = 0;
+    this.lastObservationAt = null;
+    this.observationCount = 0;
+    this.acceptedInteractions = 0;
+    this.suppressedInteractions = 0;
+  }
+
+  private applySensitivity(point: { x: number; y: number }): { x: number; y: number } {
+    const bounds = this.screenBounds;
+    if (!bounds || this.cursorSensitivity === 1) return point;
+    return {
+      x: Math.max(bounds.x, Math.min(bounds.x + bounds.width, bounds.x + bounds.width / 2 + (point.x - bounds.x - bounds.width / 2) * this.cursorSensitivity)),
+      y: Math.max(bounds.y, Math.min(bounds.y + bounds.height, bounds.y + bounds.height / 2 + (point.y - bounds.y - bounds.height / 2) * this.cursorSensitivity))
+    };
   }
 }

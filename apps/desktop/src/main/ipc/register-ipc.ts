@@ -19,6 +19,16 @@ function validatePreferencesPatch(value: unknown): Partial<Preferences> {
     patch.launchAtLogin = input.launchAtLogin;
   }
 
+  if ("onboardingComplete" in input) {
+    if (typeof input.onboardingComplete !== "boolean") throw new TypeError("onboardingComplete must be a boolean.");
+    patch.onboardingComplete = input.onboardingComplete;
+  }
+
+  if ("cameraDeviceId" in input) {
+    if (input.cameraDeviceId !== null && (typeof input.cameraDeviceId !== "string" || input.cameraDeviceId.length > 300)) throw new TypeError("cameraDeviceId must be null or a valid device identifier.");
+    patch.cameraDeviceId = input.cameraDeviceId as string | null;
+  }
+
   if ("interactionMode" in input) {
     if (input.interactionMode !== "dwell" && input.interactionMode !== "wink") {
       throw new TypeError("interactionMode is invalid.");
@@ -48,11 +58,13 @@ export function registerIpc(
   settings: SettingsStore,
   getPopover: () => BrowserWindow | null,
   openCalibration: () => void,
+  openSettings: () => void,
   runtime: TrackingRuntime,
   nativeInput: MacOSInputAdapter,
   calibrationStore: CalibrationStore
 ): void {
   ipcMain.handle("session:get-status", () => coordinator.getStatus());
+  ipcMain.handle("diagnostics:get", () => runtime.getDiagnostics());
   ipcMain.handle("session:start", () => coordinator.start());
   ipcMain.handle("session:stop", async () => {
     await runtime.stop();
@@ -111,10 +123,12 @@ export function registerIpc(
   ipcMain.handle("native:open-settings", async () => {
     await shell.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility");
   });
+  ipcMain.handle("settings:open", () => openSettings());
   ipcMain.handle("preferences:get", () => settings.get());
   ipcMain.handle("preferences:set", async (_event, value: unknown) => {
     const patch = validatePreferencesPatch(value);
     const next = await settings.update(patch);
+    runtime.setPreferences(next);
     if (patch.launchAtLogin !== undefined) {
       app.setLoginItemSettings({ openAtLogin: next.launchAtLogin });
     }

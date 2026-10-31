@@ -4,6 +4,8 @@ import type { Preferences } from "@eyemouse/shared-types";
 
 export const DEFAULT_PREFERENCES: Preferences = {
   launchAtLogin: false,
+  onboardingComplete: false,
+  cameraDeviceId: null,
   interactionMode: "dwell",
   cursorSensitivity: 1,
   smoothing: 0.35

@@ -44,7 +44,7 @@ function EyeMark(): JSX.Element {
 export function App(): JSX.Element {
   const [status, setStatus] = useState<SessionStatus | null>(null);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
-  const [diagnostics, setDiagnostics] = useState({ faceVisible: false, eyesVisible: false, fps: 0, error: null as string | null });
+  const [diagnostics, setDiagnostics] = useState({ faceVisible: false, eyesVisible: false, fps: 0, frameAgeMs: null as number | null, error: null as string | null });
   const cameraManager = useRef(new CameraManager());
   const visionPipeline = useRef(new VisionPipeline());
   const qualityEngine = useRef(new TrackingQualityEngine());
@@ -115,6 +115,14 @@ export function App(): JSX.Element {
   }, [status?.state]);
 
   useEffect(() => {
+    if (!status || !["TRACKING_ACTIVE", "TRACKING_DEGRADED", "TRACKING_LOST"].includes(status.state)) return;
+    const timer = window.setInterval(() => {
+      void window.eyemouse.getDiagnostics().then((snapshot) => setDiagnostics((current) => ({ ...current, fps: snapshot.fps, frameAgeMs: snapshot.frameAgeMs, error: snapshot.lastRecoveryRecommendation === "Tracking is stable." ? current.error : snapshot.lastRecoveryRecommendation })));
+    }, 500);
+    return () => window.clearInterval(timer);
+  }, [status?.state]);
+
+  useEffect(() => {
     if (preferences) interactionMode.current = preferences.interactionMode;
   }, [preferences]);
 
@@ -140,6 +148,7 @@ export function App(): JSX.Element {
         faceVisible: observation.faceVisible,
         eyesVisible: observation.leftEyeVisible && observation.rightEyeVisible,
         fps: frameTimes.current.length,
+        frameAgeMs: 0,
         error: quality.state === "lost" ? quality.recoveryRecommendation : null
       });
       void window.eyemouse.publishObservation(observation).then((update) => {
@@ -167,7 +176,19 @@ export function App(): JSX.Element {
   async function startCamera(): Promise<void> {
     await window.eyemouse.setCameraRequesting();
     try {
-      await cameraManager.current.requestAccess();
+      const devices = await cameraManager.current.listVideoInputs();
+      const selectedDeviceId = preferences?.cameraDeviceId && devices.some((device) => device.deviceId === preferences.cameraDeviceId) ? preferences.cameraDeviceId : null;
+      if (devices.length === 0) throw new Error("No compatible camera was found.");
+      await cameraManager.current.requestAccess(selectedDeviceId, () => {
+        setDiagnostics((current) => ({ ...current, error: "Camera disconnected. Reconnect it and start the session again." }));
+        cameraManager.current.release();
+        void window.eyemouse.stopSession();
+      });
+      const activeDevice = (await cameraManager.current.listVideoInputs()).find((device) => device.deviceId === selectedDeviceId);
+      if (activeDevice && activeDevice.deviceId !== preferences?.cameraDeviceId) {
+        const next = await window.eyemouse.setPreferences({ cameraDeviceId: activeDevice.deviceId });
+        setPreferences(next);
+      }
       await window.eyemouse.setCameraReady();
     } catch (error) {
       cameraManager.current.release();
@@ -258,6 +279,10 @@ export function App(): JSX.Element {
           <span>Vision pipeline</span>
           <span className="value">{diagnostics.fps > 0 ? `${diagnostics.fps} FPS` : "Starting…"}</span>
         </div>
+        <div className="status-row">
+          <span>Frame age</span>
+          <span className="value">{diagnostics.frameAgeMs === null ? "—" : `${Math.round(diagnostics.frameAgeMs)} ms`}</span>
+        </div>
       </section>
 
       {status.state === "CALIBRATION_REQUIRED" && (
@@ -283,6 +308,7 @@ export function App(): JSX.Element {
           <span className="toggle-track" aria-hidden="true"><span /></span>
           <span>Launch at login</span>
         </label>
+        <button className="footer-link" onClick={() => void window.eyemouse.openSettings()}>Settings</button>
         <span className="footer-version">v0.1</span>
       </footer>
     </main>

@@ -26,6 +26,8 @@ export type InteractionMode = "dwell" | "wink";
 
 export interface Preferences {
   launchAtLogin: boolean;
+  onboardingComplete: boolean;
+  cameraDeviceId: string | null;
   interactionMode: InteractionMode;
   cursorSensitivity: number;
   smoothing: number;
@@ -43,8 +45,19 @@ export interface SessionStatus {
   updatedAt: number;
 }
 
+export interface DiagnosticsSnapshot {
+  fps: number;
+  frameAgeMs: number | null;
+  observations: number;
+  acceptedInteractions: number;
+  suppressedInteractions: number;
+  qualityState: TrackingQualityState;
+  lastRecoveryRecommendation: string | null;
+}
+
 export interface EyeMouseAPI {
   getSessionStatus(): Promise<SessionStatus>;
+  getDiagnostics(): Promise<DiagnosticsSnapshot>;
   startSession(): Promise<SessionStatus>;
   stopSession(): Promise<SessionStatus>;
   pauseSession(): Promise<SessionStatus>;
@@ -59,6 +72,7 @@ export interface EyeMouseAPI {
   publishInteraction(event: InteractionEvent): Promise<boolean>;
   checkNativeInput(): Promise<SessionStatus>;
   openAccessibilitySettings(): Promise<void>;
+  openSettings(): Promise<void>;
   getPreferences(): Promise<Preferences>;
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>;
   onSessionStatusChanged(listener: (status: SessionStatus) => void): () => void;

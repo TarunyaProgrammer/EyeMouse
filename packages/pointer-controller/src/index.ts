@@ -14,8 +14,21 @@ export class OneEuroFilter {
   private previousValue: number | null = null;
   private previousDerivative = 0;
   private previousTimestamp: number | null = null;
+  private minCutoff: number;
+  private beta: number;
+  private derivativeCutoff: number;
 
-  constructor(private readonly minCutoff = 1.2, private readonly beta = 0.02, private readonly derivativeCutoff = 1) {}
+  constructor(minCutoff = 1.2, beta = 0.02, derivativeCutoff = 1) {
+    this.minCutoff = minCutoff;
+    this.beta = beta;
+    this.derivativeCutoff = derivativeCutoff;
+  }
+
+  configureSmoothing(smoothing: number): void {
+    const bounded = Math.max(0, Math.min(1, smoothing));
+    this.minCutoff = 2 - bounded * 1.5;
+    this.beta = 0.04 - bounded * 0.03;
+  }
 
   filter(value: number, timestampMs: number, speed = 0): number {
     if (this.previousValue === null || this.previousTimestamp === null) {
@@ -49,6 +62,11 @@ export class PointerController {
   private dragging = false;
 
   constructor(private readonly adapter: NativeInputAdapter, private readonly maxSafeErrorPx = 140) {}
+
+  setSmoothing(smoothing: number): void {
+    this.xFilter.configureSmoothing(smoothing);
+    this.yFilter.configureSmoothing(smoothing);
+  }
 
   async move(point: Point2D, quality: TrackingQuality, timestampMs: number): Promise<boolean> {
     if (!this.canMove(quality)) return false;
