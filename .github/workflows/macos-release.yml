@@ -33,6 +33,8 @@ jobs:
           certificate_path="$RUNNER_TEMP/eyemouse-signing.p12"
           echo "$CERTIFICATE_BASE64" | base64 --decode > "$certificate_path"
           echo "CSC_LINK=$certificate_path" >> "$GITHUB_ENV"
+      - name: Verify release environment
+        run: pnpm verify:release-env
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm test

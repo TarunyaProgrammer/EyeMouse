@@ -9,6 +9,7 @@
     "build:native": "./scripts/build-native-input.sh",
     "package:mac": "pnpm --filter @eyemouse/desktop package:mac",
     "verify:package": "./scripts/verify-macos-package.sh",
+    "verify:release-env": "./scripts/verify-release-environment.sh",
     "verify:mac": "./scripts/verify-macos-app.sh",
     "test": "pnpm --filter @eyemouse/desktop test",
     "typecheck": "pnpm --filter @eyemouse/desktop typecheck"

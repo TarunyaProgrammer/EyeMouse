@@ -16,5 +16,5 @@
 - `CAMERA_READY` means only that the camera stream was acquired; it does not mean eyes are tracked.
 - The login-item preference is wired through Electron's API but has not been verified in a signed/notarized artifact.
 - Calibration and preferences are persisted locally, but there is no cloud sync by design.
-- No automatic update feed is configured yet.
+- The GitHub update feed is configured and opt-in, but no signed public release has been published yet; updater behavior remains a release acceptance item.
 - Multi-monitor selection and display-specific calibration are implemented, but a physical monitor-matrix evaluation is still required.
