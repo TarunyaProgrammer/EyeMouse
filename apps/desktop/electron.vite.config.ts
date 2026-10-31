@@ -7,7 +7,16 @@ const projectDirectory = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   main: {},
-  preload: {},
+  preload: {
+    build: {
+      rollupOptions: {
+        output: {
+          format: "cjs",
+          entryFileNames: "index.cjs"
+        }
+      }
+    }
+  },
   renderer: {
     plugins: [react()],
     publicDir: resolve(projectDirectory, "../../assets")

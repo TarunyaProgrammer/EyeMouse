@@ -40,7 +40,7 @@ function openCalibrationWindow(displayId?: string): void {
     skipTaskbar: true,
     alwaysOnTop: true,
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -69,7 +69,7 @@ function openUtilityWindow(kind: "settings" | "diagnostics" | "onboarding"): Bro
     title: kind === "settings" ? "EyeMouse Settings" : kind === "diagnostics" ? "EyeMouse Diagnostics" : "Welcome to EyeMouse",
     backgroundColor: "#f7f7f8",
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname, "../preload/index.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
