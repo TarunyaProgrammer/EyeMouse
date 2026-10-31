@@ -15,6 +15,16 @@ The local validation is intentionally unsigned when no Developer ID identity is 
 3. a signed-build smoke test covering camera permission, Accessibility refusal, login startup and native helper launch;
 4. an update feed and release artifact hosting policy.
 
+The repository includes `.github/workflows/macos-release.yml`, which runs on `v*` tags. Configure these repository secrets before using it:
+
+- `MACOS_CERTIFICATE_P12_BASE64`
+- `MACOS_CERTIFICATE_PASSWORD`
+- `APPLE_ID`
+- `APPLE_APP_SPECIFIC_PASSWORD`
+- `APPLE_TEAM_ID`
+
+The workflow signs, notarizes through Electron Builder, publishes the DMG/ZIP to the GitHub release, and runs the bundle verifier.
+
 For a signed release app, verify the final bundle before distribution:
 
 ```sh
