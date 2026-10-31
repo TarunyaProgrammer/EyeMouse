@@ -127,8 +127,11 @@ export function registerIpc(
   ipcMain.handle("tracking:observation", async (_event, value: unknown) => {
     if (!value || typeof value !== "object") throw new TypeError("Observation must be an object.");
     const observation = value as Partial<EyeTrackingObservation>;
-    if (typeof observation.timestampMs !== "number" || !Number.isFinite(observation.timestampMs) || typeof observation.frameId !== "number" || !Array.isArray(observation.normalizedFeatures) || typeof observation.faceVisible !== "boolean" || typeof observation.leftEyeVisible !== "boolean" || typeof observation.rightEyeVisible !== "boolean") {
+    if (typeof observation.timestampMs !== "number" || !Number.isFinite(observation.timestampMs) || typeof observation.frameId !== "number" || !Number.isInteger(observation.frameId) || observation.frameId < 0 || !Array.isArray(observation.normalizedFeatures) || observation.normalizedFeatures.length !== 13 || !observation.normalizedFeatures.every((item) => typeof item === "number" && Number.isFinite(item)) || typeof observation.faceVisible !== "boolean" || typeof observation.leftEyeVisible !== "boolean" || typeof observation.rightEyeVisible !== "boolean") {
       throw new TypeError("Invalid eye-tracking observation.");
+    }
+    for (const value of [observation.leftEyeOpen, observation.rightEyeOpen, observation.landmarkStability, observation.headPose?.yaw, observation.headPose?.pitch, observation.headPose?.roll]) {
+      if (value !== undefined && value !== null && (typeof value !== "number" || !Number.isFinite(value))) throw new TypeError("Observation contains non-finite measurements.");
     }
     return runtime.processObservation(observation as EyeTrackingObservation);
   });
@@ -136,7 +139,9 @@ export function registerIpc(
     if (!value || typeof value !== "object") throw new TypeError("Interaction event must be an object.");
     const event = value as Partial<InteractionEvent>;
     const validTypes = ["LEFT_CLICK", "RIGHT_CLICK", "DOUBLE_CLICK", "DWELL_CLICK", "DRAG_START", "DRAG_END", "SCROLL", "PAUSE"];
-    if (typeof event.type !== "string" || !validTypes.includes(event.type) || typeof event.timestampMs !== "number" || typeof event.confidence !== "number") throw new TypeError("Invalid interaction event.");
+    const validSources = ["left-wink", "right-wink", "dwell", "keyboard", "unknown"];
+    if (typeof event.type !== "string" || !validTypes.includes(event.type) || typeof event.timestampMs !== "number" || !Number.isFinite(event.timestampMs) || typeof event.confidence !== "number" || !Number.isFinite(event.confidence) || event.confidence < 0 || event.confidence > 1 || typeof event.source !== "string" || !validSources.includes(event.source) || (event.deltaY !== undefined && (typeof event.deltaY !== "number" || !Number.isFinite(event.deltaY) || Math.abs(event.deltaY) > 100))) throw new TypeError("Invalid interaction event.");
+    if (event.point !== null && event.point !== undefined && (typeof event.point !== "object" || typeof event.point.x !== "number" || typeof event.point.y !== "number" || !Number.isFinite(event.point.x) || !Number.isFinite(event.point.y))) throw new TypeError("Interaction point is invalid.");
     return runtime.processInteraction(event as InteractionEvent);
   });
   ipcMain.handle("native:check", async () => {
