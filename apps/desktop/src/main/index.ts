@@ -15,6 +15,7 @@ let popover: ReturnType<typeof createPopover> | null = null;
 let tray: ReturnType<typeof createTray> | null = null;
 let calibrationWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
+let diagnosticsWindow: BrowserWindow | null = null;
 let onboardingWindow: BrowserWindow | null = null;
 let nativeInput: MacOSInputAdapter | null = null;
 let trackingRuntime: TrackingRuntime | null = null;
@@ -52,20 +53,20 @@ function openCalibrationWindow(displayId?: string): void {
   calibrationWindow.once("ready-to-show", () => calibrationWindow?.show());
 }
 
-function openUtilityWindow(kind: "settings" | "onboarding"): BrowserWindow {
-  const existing = kind === "settings" ? settingsWindow : onboardingWindow;
+function openUtilityWindow(kind: "settings" | "diagnostics" | "onboarding"): BrowserWindow {
+  const existing = kind === "settings" ? settingsWindow : kind === "diagnostics" ? diagnosticsWindow : onboardingWindow;
   if (existing && !existing.isDestroyed()) {
     existing.show();
     existing.focus();
     return existing;
   }
   const window = new BrowserWindow({
-    width: kind === "settings" ? 520 : 560,
-    height: kind === "settings" ? 620 : 520,
-    minWidth: kind === "settings" ? 480 : 520,
-    minHeight: kind === "settings" ? 560 : 480,
+    width: kind === "settings" ? 520 : kind === "diagnostics" ? 620 : 560,
+    height: kind === "settings" ? 620 : kind === "diagnostics" ? 620 : 520,
+    minWidth: kind === "settings" ? 480 : kind === "diagnostics" ? 580 : 520,
+    minHeight: kind === "settings" ? 560 : kind === "diagnostics" ? 560 : 480,
     show: false,
-    title: kind === "settings" ? "EyeMouse Settings" : "Welcome to EyeMouse",
+    title: kind === "settings" ? "EyeMouse Settings" : kind === "diagnostics" ? "EyeMouse Diagnostics" : "Welcome to EyeMouse",
     backgroundColor: "#f7f7f8",
     webPreferences: {
       preload: join(__dirname, "../preload/index.mjs"),
@@ -75,9 +76,11 @@ function openUtilityWindow(kind: "settings" | "onboarding"): BrowserWindow {
     }
   });
   if (kind === "settings") settingsWindow = window;
+  else if (kind === "diagnostics") diagnosticsWindow = window;
   else onboardingWindow = window;
   window.on("closed", () => {
     if (kind === "settings") settingsWindow = null;
+    else if (kind === "diagnostics") diagnosticsWindow = null;
     else onboardingWindow = null;
   });
   const query = `?${kind}=1`;
@@ -89,6 +92,7 @@ function openUtilityWindow(kind: "settings" | "onboarding"): BrowserWindow {
 }
 
 function openSettingsWindow(): void { openUtilityWindow("settings"); }
+function openDiagnosticsWindow(): void { openUtilityWindow("diagnostics"); }
 
 app.whenReady().then(async () => {
   if (process.platform === "darwin") app.dock?.hide();
@@ -117,7 +121,7 @@ app.whenReady().then(async () => {
   }
   popover = createPopover();
   tray = createTray(popover, () => app.quit());
-  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, openSettingsWindow, trackingRuntime, nativeInput, calibrationStore, updates);
+  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, openSettingsWindow, openDiagnosticsWindow, trackingRuntime, nativeInput, calibrationStore, updates);
   if (updates.getStatus().state !== "disabled" && app.isPackaged) void updates.check();
   if (!preferences.onboardingComplete) openUtilityWindow("onboarding");
 
@@ -139,6 +143,8 @@ app.on("before-quit", () => {
   calibrationWindow = null;
   settingsWindow?.destroy();
   settingsWindow = null;
+  diagnosticsWindow?.destroy();
+  diagnosticsWindow = null;
   onboardingWindow?.destroy();
   onboardingWindow = null;
 });

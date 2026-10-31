@@ -330,6 +330,7 @@ export function App(): JSX.Element {
           <span>Launch at login</span>
         </label>
         <button className="footer-link" onClick={() => void window.eyemouse.openSettings()}>Settings</button>
+        <button className="footer-link" onClick={() => void window.eyemouse.openDiagnostics()}>Diagnostics</button>
         <span className="footer-version">v0.1</span>
       </footer>
     </main>

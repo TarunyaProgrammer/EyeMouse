@@ -59,6 +59,7 @@
 - [x] Configurable wink single/double click action.
 - [x] Opt-in edge-dwell scrolling with direction and cooldown.
 - [x] Runtime interaction IPC and diagnostics metrics.
+- [x] Dedicated diagnostics panel with live quality, latency and safety counts.
 - [ ] Accessibility and extended-session evaluation.
 - [x] Unsigned DMG/ZIP packaging with native helper and local model assets.
 - [x] Opt-in GitHub release update mechanism and signed-artifact verification script.

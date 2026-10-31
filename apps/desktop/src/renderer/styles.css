@@ -107,6 +107,10 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
 .settings-update-row small { color: #85878e; font-size: 11px; }
 .settings-update-actions { flex: 0 0 auto; }
 .settings-update-actions button:disabled { cursor: default; opacity: .55; }
+.diagnostics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.diagnostics-grid div { display: grid; gap: 5px; padding: 12px; border-radius: 9px; background: #ececf0; }
+.diagnostics-grid span { color: #85878e; font-size: 10px; }
+.diagnostics-grid strong { color: #2f3136; font-size: 14px; text-transform: capitalize; }
 .secondary-button { padding: 8px 11px; border: 0; border-radius: 8px; color: #2f5eaa; background: #e0eaff; cursor: pointer; font-size: 11px; font-weight: 650; }
 .onboarding-shell { display: flex; flex-direction: column; min-height: 100vh; padding: 74px 64px 46px; color: #f4f5f7; background: #15161a; }
 .onboarding-mark { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 42px; border-radius: 15px; color: #15161a; background: #f4f5f7; font-size: 25px; }
@@ -128,4 +132,6 @@ h1 { margin: 0; font-size: 15px; font-weight: 650; letter-spacing: -0.02em; }
   .settings-field, .settings-check { border-color: #3b3c42; }
   .settings-field select { color: #e2e2e5; border-color: #555761; background: #303137; }
   .settings-subtitle, .settings-field small, .settings-check small, .settings-note, .settings-footer { color: #999ba3; }
+  .diagnostics-grid div { background: #303137; }
+  .diagnostics-grid strong { color: #e2e2e5; }
 }

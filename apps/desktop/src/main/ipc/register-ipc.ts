@@ -75,6 +75,7 @@ export function registerIpc(
   getPopover: () => BrowserWindow | null,
   openCalibration: (displayId?: string) => void,
   openSettings: () => void,
+  openDiagnostics: () => void,
   runtime: TrackingRuntime,
   nativeInput: MacOSInputAdapter,
   calibrationStore: CalibrationStore,
@@ -153,6 +154,7 @@ export function registerIpc(
     await shell.openExternal("x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility");
   });
   ipcMain.handle("settings:open", () => openSettings());
+  ipcMain.handle("diagnostics:open", () => openDiagnostics());
   ipcMain.handle("preferences:get", () => settings.get());
   ipcMain.handle("preferences:set", async (_event, value: unknown) => {
     const patch = validatePreferencesPatch(value);

@@ -24,6 +24,7 @@ const api: EyeMouseAPI = {
   checkNativeInput: () => ipcRenderer.invoke("native:check"),
   openAccessibilitySettings: () => ipcRenderer.invoke("native:open-settings"),
   openSettings: () => ipcRenderer.invoke("settings:open"),
+  openDiagnostics: () => ipcRenderer.invoke("diagnostics:open"),
   getPreferences: () => ipcRenderer.invoke("preferences:get"),
   setPreferences: (patch: Partial<Preferences>) => ipcRenderer.invoke("preferences:set", patch),
   onSessionStatusChanged: (listener: (status: SessionStatus) => void) => {
