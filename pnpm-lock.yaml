@@ -10,9 +10,24 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@eyemouse/calibration':
+        specifier: workspace:*
+        version: link:../../packages/calibration
+      '@eyemouse/gaze-estimation':
+        specifier: workspace:*
+        version: link:../../packages/gaze-estimation
+      '@eyemouse/interaction-engine':
+        specifier: workspace:*
+        version: link:../../packages/interaction-engine
+      '@eyemouse/pointer-controller':
+        specifier: workspace:*
+        version: link:../../packages/pointer-controller
       '@eyemouse/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@eyemouse/tracking-quality':
+        specifier: workspace:*
+        version: link:../../packages/tracking-quality
       '@vitejs/plugin-react':
         specifier: ^4.4.1
         version: 4.7.0(vite@7.3.7(@types/node@22.20.5))
@@ -48,7 +63,40 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.5)
 
+  packages/calibration:
+    dependencies:
+      '@eyemouse/gaze-estimation':
+        specifier: workspace:*
+        version: link:../gaze-estimation
+      '@eyemouse/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/gaze-estimation:
+    dependencies:
+      '@eyemouse/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/interaction-engine:
+    dependencies:
+      '@eyemouse/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
+  packages/pointer-controller:
+    dependencies:
+      '@eyemouse/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
+
   packages/shared-types: {}
+
+  packages/tracking-quality:
+    dependencies:
+      '@eyemouse/shared-types':
+        specifier: workspace:*
+        version: link:../shared-types
 
 packages:
 

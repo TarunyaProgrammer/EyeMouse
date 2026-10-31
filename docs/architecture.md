@@ -37,6 +37,14 @@ flowchart LR
 
 The renderer requests camera access through `CameraManager`, but it does not run vision algorithms or emit system input. The main process owns lifecycle state and the future safety boundary. This is a temporary Phase 1 camera placement; MediaPipe processing should move behind a worker or a dedicated vision module before active pointer control is implemented.
 
+The first algorithm packages now exist as executable boundaries:
+
+- `gaze-estimation`: explainable linear/polynomial ridge regression and held-out metrics.
+- `calibration`: nine-point fitting targets, held-out validation targets and stable sample collection.
+- `tracking-quality`: independent quality dimensions and hysteretic GOOD/DEGRADED/LOST decisions.
+- `interaction-engine`: wink/blink rejection, dwell timing and event safety filtering.
+- `pointer-controller`: One Euro smoothing, movement policy and native adapter contract.
+
 ## Module responsibilities
 
 | Module | Responsibility | Not responsible for |

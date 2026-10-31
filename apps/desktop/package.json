@@ -11,7 +11,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@eyemouse/calibration": "workspace:*",
+    "@eyemouse/gaze-estimation": "workspace:*",
+    "@eyemouse/interaction-engine": "workspace:*",
+    "@eyemouse/pointer-controller": "workspace:*",
     "@eyemouse/shared-types": "workspace:*",
+    "@eyemouse/tracking-quality": "workspace:*",
     "@vitejs/plugin-react": "^4.4.1",
     "electron": "^38.0.0",
     "electron-vite": "^4.0.0",

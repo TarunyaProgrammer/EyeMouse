@@ -32,16 +32,21 @@
 
 ## Phase 3 — calibration and gaze estimation
 
-- [ ] Nine-point calibration.
-- [ ] Stable sample rejection.
-- [ ] Explainable regression baseline.
-- [ ] Held-out validation and display metadata.
+- [x] Nine-point target and held-out validation target definitions.
+- [x] Stable sample rejection primitive.
+- [x] Explainable regularized regression baseline.
+- [x] Held-out training/validation metrics.
+- [ ] Interactive calibration UI and display metadata integration.
 - [ ] Calibration persistence and invalidation.
 
 ## Phase 4+ — input and hardening
 
+- [x] Native adapter contract and pointer safety policy.
+- [x] One Euro smoothing primitive.
+- [x] Wink, blink rejection and dwell state machines.
+- [x] Quality-gated interaction event filtering.
 - [ ] Native macOS input adapter.
-- [ ] Centralized safety controller.
+- [ ] Centralized runtime safety controller integration.
 - [ ] Quality state engine with hysteresis.
 - [ ] Gesture state machines.
 - [ ] Accessibility and extended-session evaluation.
