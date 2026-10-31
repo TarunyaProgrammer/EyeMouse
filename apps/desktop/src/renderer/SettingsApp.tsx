@@ -9,12 +9,14 @@ export function SettingsApp(): JSX.Element {
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [displays, setDisplays] = useState<Array<{ displayId: string; width: number; height: number }>>([]);
   const [updates, setUpdates] = useState<UpdateStatus | null>(null);
+  const [loginItem, setLoginItem] = useState<{ openAtLogin: boolean; wasOpenedAtLogin: boolean } | null>(null);
 
   useEffect(() => {
     void window.eyemouse.getPreferences().then(setPreferences);
     void navigator.mediaDevices?.enumerateDevices().then((devices) => setCameras(devices.filter((device) => device.kind === "videoinput")));
     void window.eyemouse.getDisplays().then(setDisplays);
     void window.eyemouse.getUpdateStatus().then(setUpdates);
+    void window.eyemouse.getLoginItemStatus().then(setLoginItem);
     return window.eyemouse.onUpdateStatusChanged(setUpdates);
   }, []);
 
@@ -48,6 +50,7 @@ export function SettingsApp(): JSX.Element {
       <section className="settings-section">
         <h2>Startup and privacy</h2>
         <label className="settings-check"><input type="checkbox" checked={preferences.launchAtLogin} onChange={(event) => void update({ launchAtLogin: event.target.checked })} /><span><strong>Launch at login</strong><small>Start as a menu-bar utility after you sign in.</small></span></label>
+        <p className="settings-note">Electron reports startup as {loginItem?.openAtLogin ? "enabled" : "disabled"}. The signed release smoke test should verify this value after a real login.</p>
         <p className="settings-note">Camera frames, landmarks, calibration data and pointer decisions stay on this Mac. EyeMouse does not upload them.</p>
       </section>
       <section className="settings-section">

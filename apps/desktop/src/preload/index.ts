@@ -1,10 +1,11 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds, SessionStatus, TrackingUpdate, UpdateStatus } from "@eyemouse/shared-types";
+import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, InteractionEvent, LoginItemStatus, Preferences, ScreenBounds, SessionStatus, TrackingUpdate, UpdateStatus } from "@eyemouse/shared-types";
 
 const api: EyeMouseAPI = {
   getSessionStatus: () => ipcRenderer.invoke("session:get-status"),
   getDiagnostics: () => ipcRenderer.invoke("diagnostics:get"),
   getUpdateStatus: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:get"),
+  getLoginItemStatus: (): Promise<LoginItemStatus> => ipcRenderer.invoke("app:login-item"),
   checkForUpdates: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:check"),
   downloadUpdate: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:download"),
   installUpdate: (): Promise<void> => ipcRenderer.invoke("updates:install"),

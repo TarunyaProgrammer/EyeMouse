@@ -67,10 +67,16 @@ export interface UpdateStatus {
   message: string | null;
 }
 
+export interface LoginItemStatus {
+  openAtLogin: boolean;
+  wasOpenedAtLogin: boolean;
+}
+
 export interface EyeMouseAPI {
   getSessionStatus(): Promise<SessionStatus>;
   getDiagnostics(): Promise<DiagnosticsSnapshot>;
   getUpdateStatus(): Promise<UpdateStatus>;
+  getLoginItemStatus(): Promise<LoginItemStatus>;
   checkForUpdates(): Promise<UpdateStatus>;
   downloadUpdate(): Promise<UpdateStatus>;
   installUpdate(): Promise<void>;
@@ -90,6 +96,7 @@ export interface EyeMouseAPI {
   checkNativeInput(): Promise<SessionStatus>;
   openAccessibilitySettings(): Promise<void>;
   openSettings(): Promise<void>;
+  openDiagnostics(): Promise<void>;
   getPreferences(): Promise<Preferences>;
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>;
   onSessionStatusChanged(listener: (status: SessionStatus) => void): () => void;

@@ -87,6 +87,10 @@ export function registerIpc(
   ipcMain.handle("updates:check", () => updates.check());
   ipcMain.handle("updates:download", () => updates.download());
   ipcMain.handle("updates:install", () => updates.install());
+  ipcMain.handle("app:login-item", () => {
+    const loginItem = app.getLoginItemSettings();
+    return { openAtLogin: loginItem.openAtLogin, wasOpenedAtLogin: loginItem.wasOpenedAtLogin };
+  });
   ipcMain.handle("session:start", () => coordinator.start());
   ipcMain.handle("session:stop", async () => {
     await runtime.stop();
