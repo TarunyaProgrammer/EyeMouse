@@ -4,6 +4,7 @@ import { calculateValidationMetrics, fitRidgeRegression } from "@eyemouse/gaze-e
 import { DwellRecognizer, WinkRecognizer, filterInteractionEvent } from "@eyemouse/interaction-engine";
 import { OneEuroFilter } from "@eyemouse/pointer-controller";
 import { TrackingQualityEngine } from "@eyemouse/tracking-quality";
+import { estimateTemporalStability } from "@eyemouse/vision";
 
 describe("gaze estimation", () => {
   it("fits an explainable linear mapping", () => {
@@ -70,6 +71,26 @@ describe("tracking quality", () => {
     const engine = new TrackingQualityEngine({ recoveryFrames: 1 });
     expect(engine.evaluate(goodInput(0)).state).toBe("good");
     expect(engine.evaluate({ ...goodInput(1000), timestampMs: 0 }).state).toBe("lost");
+  });
+
+  it("keeps a long stable replay healthy and recovers after temporary loss", () => {
+    const engine = new TrackingQualityEngine({ recoveryFrames: 5, lostFrames: 3 });
+    let state = "lost";
+    for (let index = 0; index < 120; index += 1) state = engine.evaluate(goodInput(index * 33)).state;
+    expect(state).toBe("good");
+    expect(engine.evaluate({ ...goodInput(120 * 33), faceVisible: false, eyesVisible: false }).state).toBe("good");
+    expect(engine.evaluate({ ...goodInput(121 * 33), faceVisible: false, eyesVisible: false }).state).toBe("good");
+    expect(engine.evaluate({ ...goodInput(122 * 33), faceVisible: false, eyesVisible: false }).state).toBe("lost");
+    for (let index = 123; index < 128; index += 1) state = engine.evaluate(goodInput(index * 33)).state;
+    expect(state).toBe("good");
+  });
+});
+
+describe("vision stability", () => {
+  it("distinguishes stable landmarks from frame jitter", () => {
+    expect(estimateTemporalStability([0.1, 0.2], [0.1, 0.2])).toBe(1);
+    expect(estimateTemporalStability([0.1, 0.2], [0.12, 0.21])).toBeGreaterThan(0.7);
+    expect(estimateTemporalStability([0.1, 0.2], [0.5, 0.6])).toBe(0);
   });
 });
 

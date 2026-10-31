@@ -1,5 +1,5 @@
 # Data handling
 
-The Phase 1 shell acquires a live camera stream only after the user starts a session and releases every track when the session stops or camera initialization fails. No camera frame, landmark, biometric template or calibration sample is persisted by this slice.
+EyeMouse acquires a live camera stream only after the user starts a session and releases every track when the session stops, the camera disconnects or camera initialization fails. Face landmarks are processed in the local worker and are not uploaded or persisted. Calibration persistence stores only the fitted regression coefficients, screen geometry, validation error and profile identifier; it does not store camera frames or raw landmark recordings.
 
-Preferences are stored locally in the Electron user-data directory as JSON. The file contains interaction settings only. Future calibration storage must minimize facial data, use display metadata deliberately, and document retention and invalidation behavior before implementation.
+Preferences and calibration profiles are stored locally in the Electron user-data directory as separate JSON files using atomic replacement for writes. Calibration profiles are invalidated when the selected display ID or geometry changes. There is no cloud sync or remote telemetry in the current product slice.

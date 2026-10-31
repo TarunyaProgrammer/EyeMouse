@@ -6,6 +6,12 @@ export interface Landmark {
   z?: number;
 }
 
+export function estimateTemporalStability(previous: readonly number[] | null, current: readonly number[]): number {
+  if (!previous || previous.length !== current.length || current.length === 0) return 1;
+  const averageDelta = current.reduce((sum, value, index) => sum + Math.abs(value - previous[index]), 0) / current.length;
+  return Math.max(0, Math.min(1, 1 - averageDelta * 12));
+}
+
 const LEFT_EYE = { outer: 33, inner: 133, top: 159, bottom: 145, iris: [468, 469, 470, 471, 472] };
 const RIGHT_EYE = { outer: 362, inner: 263, top: 386, bottom: 374, iris: [473, 474, 475, 476, 477] };
 const FACE_ANCHORS = [10, 152, 234, 454];
