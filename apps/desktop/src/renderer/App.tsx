@@ -4,6 +4,7 @@ import type { CameraStatus, Preferences, SessionState, SessionStatus } from "@ey
 import { CameraManager } from "./camera-manager";
 import { VisionPipeline } from "./vision-pipeline";
 import { TrackingQualityEngine } from "@eyemouse/tracking-quality";
+import { DwellRecognizer, WinkRecognizer } from "@eyemouse/interaction-engine";
 
 const STATE_LABELS: Record<SessionState, string> = {
   IDLE: "Ready to start",
@@ -47,13 +48,17 @@ export function App(): JSX.Element {
   const cameraManager = useRef(new CameraManager());
   const visionPipeline = useRef(new VisionPipeline());
   const qualityEngine = useRef(new TrackingQualityEngine());
+  const winkRecognizer = useRef(new WinkRecognizer());
+  const dwellRecognizer = useRef(new DwellRecognizer());
+  const interactionMode = useRef<Preferences["interactionMode"]>("dwell");
   const frameTimes = useRef<number[]>([]);
   const cameraAttemptState = useRef<SessionState | null>(null);
 
   useEffect(() => {
     void Promise.all([window.eyemouse.getSessionStatus(), window.eyemouse.getPreferences()]).then(([nextStatus, nextPreferences]) => {
-      setStatus(nextStatus);
-      setPreferences(nextPreferences);
+        setStatus(nextStatus);
+        setPreferences(nextPreferences);
+        interactionMode.current = nextPreferences.interactionMode;
     });
 
     return window.eyemouse.onSessionStatusChanged(setStatus);
@@ -109,6 +114,10 @@ export function App(): JSX.Element {
     if (status?.state === "TRACKING_ACTIVE") void window.eyemouse.checkNativeInput();
   }, [status?.state]);
 
+  useEffect(() => {
+    if (preferences) interactionMode.current = preferences.interactionMode;
+  }, [preferences]);
+
   function startVisionPipeline(): void {
     const video = cameraManager.current.getVideo();
     if (!video) return;
@@ -133,7 +142,23 @@ export function App(): JSX.Element {
         fps: frameTimes.current.length,
         error: quality.state === "lost" ? quality.recoveryRecommendation : null
       });
-      void window.eyemouse.publishObservation(observation);
+      void window.eyemouse.publishObservation(observation).then((update) => {
+        if (!update) return;
+        const gestureObservation = {
+          timestampMs: observation.timestampMs,
+          leftEyeOpen: observation.leftEyeOpen,
+          rightEyeOpen: observation.rightEyeOpen,
+          qualityState: update.quality.state,
+          point: update.prediction?.point ?? null,
+          fixationStable: update.quality.state === "good" && (observation.landmarkStability ?? 0) >= 0.65
+        } as const;
+        const events = interactionMode.current === "wink"
+          ? winkRecognizer.current.observe(gestureObservation)
+          : dwellRecognizer.current.observe(gestureObservation);
+        for (const event of events) void window.eyemouse.publishInteraction(event);
+      }).catch((error: unknown) => {
+        setDiagnostics((current) => ({ ...current, error: error instanceof Error ? error.message : "Tracking update failed." }));
+      });
     }, (message) => {
       setDiagnostics((current) => ({ ...current, error: message }));
     });
@@ -159,6 +184,8 @@ export function App(): JSX.Element {
     if (!status || status.state === "IDLE" || status.state === "STOPPED") {
       await window.eyemouse.startSession();
     } else {
+      winkRecognizer.current.reset();
+      dwellRecognizer.current.reset();
       cameraManager.current.release();
       await window.eyemouse.stopSession();
     }

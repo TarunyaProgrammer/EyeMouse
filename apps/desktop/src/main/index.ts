@@ -8,10 +8,13 @@ import { createPopover } from "./windows/popover";
 import { MacOSInputAdapter } from "./native/macos-input";
 import { PointerController } from "@eyemouse/pointer-controller";
 import { TrackingRuntime } from "./tracking-runtime";
+import { CalibrationStore, matchesDisplay } from "./calibration/calibration-store";
 
 let popover: ReturnType<typeof createPopover> | null = null;
 let tray: ReturnType<typeof createTray> | null = null;
 let calibrationWindow: BrowserWindow | null = null;
+let nativeInput: MacOSInputAdapter | null = null;
+let trackingRuntime: TrackingRuntime | null = null;
 
 function openCalibrationWindow(): void {
   if (calibrationWindow && !calibrationWindow.isDestroyed()) {
@@ -53,12 +56,22 @@ app.whenReady().then(async () => {
   app.setLoginItemSettings({ openAtLogin: preferences.launchAtLogin });
 
   const coordinator = new SessionCoordinator();
-  const nativeInput = new MacOSInputAdapter();
+  const calibrationStore = new CalibrationStore(join(app.getPath("userData"), "calibration.json"));
+  const storedCalibration = await calibrationStore.load();
+  const display = screen.getPrimaryDisplay();
+  const activeCalibration = storedCalibration && matchesDisplay(storedCalibration, { id: String(display.id), ...display.bounds }) ? storedCalibration : null;
+  nativeInput = new MacOSInputAdapter();
   const pointerController = new PointerController(nativeInput);
-  const trackingRuntime = new TrackingRuntime(coordinator, pointerController);
+  trackingRuntime = new TrackingRuntime(coordinator, pointerController);
+  if (activeCalibration) {
+    coordinator.setStoredCalibration(activeCalibration);
+    trackingRuntime.setCalibration(activeCalibration);
+  } else if (storedCalibration) {
+    await calibrationStore.clear();
+  }
   popover = createPopover();
   tray = createTray(popover, () => app.quit());
-  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, trackingRuntime, nativeInput);
+  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, trackingRuntime, nativeInput, calibrationStore);
 
   app.on("activate", () => {
     if (popover && tray) {
@@ -68,6 +81,8 @@ app.whenReady().then(async () => {
 });
 
 app.on("before-quit", () => {
+  void trackingRuntime?.stop();
+  void nativeInput?.close();
   tray?.destroy();
   tray = null;
   popover?.destroy();

@@ -15,6 +15,7 @@ export class SessionCoordinator extends EventEmitter {
   private trackingQuality: TrackingQualityState = "unknown";
   private nativeInputAuthorized = false;
   private estimatedErrorPx: number | null = null;
+  private storedCalibration: CalibrationResultSummary | null = null;
   private message = "EyeMouse is idle. Start a session when you are ready.";
 
   getStatus(): SessionStatus {
@@ -25,7 +26,7 @@ export class SessionCoordinator extends EventEmitter {
       cameraStatus: this.cameraStatus,
       calibrationStatus: this.calibrationStatus,
       trackingQuality: this.trackingQuality,
-      inputEnabled: this.nativeInputAuthorized && (state === "TRACKING_ACTIVE" || state === "TRACKING_DEGRADED"),
+      inputEnabled: this.nativeInputAuthorized && this.trackingQuality !== "lost" && (state === "TRACKING_ACTIVE" || state === "TRACKING_DEGRADED"),
       nativeInputAuthorized: this.nativeInputAuthorized,
       estimatedErrorPx: this.estimatedErrorPx,
       message: this.message,
@@ -38,10 +39,10 @@ export class SessionCoordinator extends EventEmitter {
       if (this.machine.state === "STOPPED") this.machine.transition("IDLE");
       this.machine.transition("INITIALIZING");
       this.cameraStatus = "not-requested";
-      this.calibrationStatus = "not-started";
+      this.calibrationStatus = this.storedCalibration ? "valid" : "not-started";
       this.trackingQuality = "unknown";
-      this.estimatedErrorPx = null;
-      this.message = "Preparing camera access…";
+      this.estimatedErrorPx = this.storedCalibration?.validationErrorPx ?? null;
+      this.message = this.storedCalibration ? "Preparing camera access. A saved calibration will be validated." : "Preparing camera access…";
       return this.publish();
     }
 
@@ -54,7 +55,7 @@ export class SessionCoordinator extends EventEmitter {
     }
 
     this.cameraStatus = "stopped";
-    this.calibrationStatus = "not-started";
+    this.calibrationStatus = this.storedCalibration ? "valid" : "not-started";
     this.trackingQuality = "unknown";
     this.estimatedErrorPx = null;
     this.message = "Session stopped. Camera access is released.";
@@ -95,10 +96,16 @@ export class SessionCoordinator extends EventEmitter {
   setCameraReady(): SessionStatus {
     if (this.machine.state !== "INITIALIZING") return this.getStatus();
     this.machine.transition("CAMERA_READY");
-    this.machine.transition("CALIBRATION_REQUIRED");
     this.cameraStatus = "ready";
-    this.calibrationStatus = "required";
-    this.message = "Camera ready. Complete calibration before cursor control can be enabled.";
+    if (this.storedCalibration) {
+      this.machine.transition("TRACKING_ACTIVE");
+      this.calibrationStatus = "valid";
+      this.message = "Camera ready. Validating the saved calibration before cursor control is enabled.";
+    } else {
+      this.machine.transition("CALIBRATION_REQUIRED");
+      this.calibrationStatus = "required";
+      this.message = "Camera ready. Complete calibration before cursor control can be enabled.";
+    }
     return this.publish();
   }
 
@@ -125,6 +132,7 @@ export class SessionCoordinator extends EventEmitter {
   completeCalibration(result: CalibrationResultSummary): SessionStatus {
     if (this.machine.state !== "CALIBRATION_REQUIRED" && this.machine.state !== "CAMERA_READY") return this.getStatus();
     this.calibrationStatus = result.accepted ? "valid" : "invalid";
+    this.storedCalibration = result.accepted ? result : null;
     this.estimatedErrorPx = result.validationErrorPx;
     if (result.accepted) {
       if (this.machine.state === "CAMERA_READY") this.machine.transition("CALIBRATION_REQUIRED");
@@ -150,6 +158,15 @@ export class SessionCoordinator extends EventEmitter {
     if (quality === "degraded" && this.machine.state === "TRACKING_ACTIVE") this.message = "Tracking degraded. Cursor movement is cautious and clicks are suppressed.";
     if (quality === "good" && this.machine.state === "TRACKING_ACTIVE" && this.nativeInputAuthorized) this.message = "Tracking active. Cursor input is enabled.";
     return this.publish();
+  }
+
+  setStoredCalibration(result: CalibrationResultSummary | null): void {
+    this.storedCalibration = result?.accepted ? result : null;
+    if (this.machine.state === "IDLE" || this.machine.state === "STOPPED") {
+      this.calibrationStatus = this.storedCalibration ? "valid" : "not-started";
+      this.estimatedErrorPx = this.storedCalibration?.validationErrorPx ?? null;
+      this.message = this.storedCalibration ? "Saved calibration is ready for the next session." : this.message;
+    }
   }
 
   private publish(): SessionStatus {

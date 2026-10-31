@@ -1,9 +1,10 @@
 import { app, ipcMain, screen, shell, type BrowserWindow } from "electron";
-import type { CalibrationResultSummary, EyeTrackingObservation, Preferences, ScreenBounds } from "@eyemouse/shared-types";
+import type { CalibrationResultSummary, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds } from "@eyemouse/shared-types";
 import { SessionCoordinator } from "../session/session-coordinator";
 import { SettingsStore } from "../settings/settings-store";
 import { TrackingRuntime } from "../tracking-runtime";
 import { MacOSInputAdapter } from "../native/macos-input";
+import { CalibrationStore, isCalibrationResult } from "../calibration/calibration-store";
 
 function validatePreferencesPatch(value: unknown): Partial<Preferences> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -48,7 +49,8 @@ export function registerIpc(
   getPopover: () => BrowserWindow | null,
   openCalibration: () => void,
   runtime: TrackingRuntime,
-  nativeInput: MacOSInputAdapter
+  nativeInput: MacOSInputAdapter,
+  calibrationStore: CalibrationStore
 ): void {
   ipcMain.handle("session:get-status", () => coordinator.getStatus());
   ipcMain.handle("session:start", () => coordinator.start());
@@ -75,15 +77,15 @@ export function registerIpc(
     const display = screen.getPrimaryDisplay();
     return { ...display.bounds, displayId: String(display.id) };
   });
-  ipcMain.handle("calibration:complete", (_event, result: unknown) => {
-    if (!result || typeof result !== "object") throw new TypeError("Calibration result must be an object.");
-    const value = result as Record<string, unknown>;
-    if (typeof value.calibrationId !== "string" || typeof value.displayId !== "string" || typeof value.validationErrorPx !== "number" || !Number.isFinite(value.validationErrorPx) || typeof value.accepted !== "boolean" || !value.model || typeof value.model !== "object" || !value.screenBounds || typeof value.screenBounds !== "object") {
+  ipcMain.handle("calibration:complete", async (_event, result: unknown) => {
+    if (!isCalibrationResult(result)) {
       throw new TypeError("Invalid calibration result.");
     }
-    const calibrationResult = value as unknown as CalibrationResultSummary;
+    const calibrationResult = result as CalibrationResultSummary;
     const status = coordinator.completeCalibration(calibrationResult);
     runtime.setCalibration(calibrationResult);
+    if (calibrationResult.accepted) await calibrationStore.save(calibrationResult);
+    else await calibrationStore.clear();
     return status;
   });
   ipcMain.handle("tracking:observation", async (_event, value: unknown) => {
@@ -92,7 +94,14 @@ export function registerIpc(
     if (typeof observation.timestampMs !== "number" || !Number.isFinite(observation.timestampMs) || typeof observation.frameId !== "number" || !Array.isArray(observation.normalizedFeatures) || typeof observation.faceVisible !== "boolean" || typeof observation.leftEyeVisible !== "boolean" || typeof observation.rightEyeVisible !== "boolean") {
       throw new TypeError("Invalid eye-tracking observation.");
     }
-    await runtime.processObservation(observation as EyeTrackingObservation);
+    return runtime.processObservation(observation as EyeTrackingObservation);
+  });
+  ipcMain.handle("tracking:interaction", async (_event, value: unknown) => {
+    if (!value || typeof value !== "object") throw new TypeError("Interaction event must be an object.");
+    const event = value as Partial<InteractionEvent>;
+    const validTypes = ["LEFT_CLICK", "RIGHT_CLICK", "DOUBLE_CLICK", "DWELL_CLICK", "DRAG_START", "DRAG_END", "SCROLL", "PAUSE"];
+    if (typeof event.type !== "string" || !validTypes.includes(event.type) || typeof event.timestampMs !== "number" || typeof event.confidence !== "number") throw new TypeError("Invalid interaction event.");
+    return runtime.processInteraction(event as InteractionEvent);
   });
   ipcMain.handle("native:check", async () => {
     let authorized = false;

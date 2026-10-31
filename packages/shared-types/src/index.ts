@@ -55,7 +55,8 @@ export interface EyeMouseAPI {
   openCalibration(): Promise<void>;
   getCalibrationScreen(): Promise<ScreenBounds>;
   completeCalibration(result: CalibrationResultSummary): Promise<SessionStatus>;
-  publishObservation(observation: EyeTrackingObservation): Promise<void>;
+  publishObservation(observation: EyeTrackingObservation): Promise<TrackingUpdate | null>;
+  publishInteraction(event: InteractionEvent): Promise<boolean>;
   checkNativeInput(): Promise<SessionStatus>;
   openAccessibilitySettings(): Promise<void>;
   getPreferences(): Promise<Preferences>;
@@ -116,6 +117,11 @@ export interface GazePrediction {
   normalizedPoint: Point2D;
   estimatedErrorPx: number | null;
   calibrationId: string | null;
+}
+
+export interface TrackingUpdate {
+  quality: TrackingQuality;
+  prediction: GazePrediction | null;
 }
 
 export type QualityReasonCode =
