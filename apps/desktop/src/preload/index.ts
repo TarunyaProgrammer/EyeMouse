@@ -1,9 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds, SessionStatus, TrackingUpdate } from "@eyemouse/shared-types";
+import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, InteractionEvent, Preferences, ScreenBounds, SessionStatus, TrackingUpdate, UpdateStatus } from "@eyemouse/shared-types";
 
 const api: EyeMouseAPI = {
   getSessionStatus: () => ipcRenderer.invoke("session:get-status"),
   getDiagnostics: () => ipcRenderer.invoke("diagnostics:get"),
+  getUpdateStatus: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:get"),
+  checkForUpdates: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:check"),
+  downloadUpdate: (): Promise<UpdateStatus> => ipcRenderer.invoke("updates:download"),
+  installUpdate: (): Promise<void> => ipcRenderer.invoke("updates:install"),
   startSession: () => ipcRenderer.invoke("session:start"),
   stopSession: () => ipcRenderer.invoke("session:stop"),
   pauseSession: () => ipcRenderer.invoke("session:pause"),
@@ -26,6 +30,11 @@ const api: EyeMouseAPI = {
     const handler = (_event: Electron.IpcRendererEvent, status: SessionStatus) => listener(status);
     ipcRenderer.on("session:status-changed", handler);
     return () => ipcRenderer.removeListener("session:status-changed", handler);
+  },
+  onUpdateStatusChanged: (listener: (status: UpdateStatus) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, status: UpdateStatus) => listener(status);
+    ipcRenderer.on("updates:status-changed", handler);
+    return () => ipcRenderer.removeListener("updates:status-changed", handler);
   }
 };
 

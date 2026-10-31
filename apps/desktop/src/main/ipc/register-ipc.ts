@@ -5,6 +5,7 @@ import { SettingsStore } from "../settings/settings-store";
 import { TrackingRuntime } from "../tracking-runtime";
 import { MacOSInputAdapter } from "../native/macos-input";
 import { CalibrationStore, isCalibrationResult } from "../calibration/calibration-store";
+import { UpdateManager } from "../update-manager";
 
 function validatePreferencesPatch(value: unknown): Partial<Preferences> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -66,10 +67,15 @@ export function registerIpc(
   openSettings: () => void,
   runtime: TrackingRuntime,
   nativeInput: MacOSInputAdapter,
-  calibrationStore: CalibrationStore
+  calibrationStore: CalibrationStore,
+  updates: UpdateManager
 ): void {
   ipcMain.handle("session:get-status", () => coordinator.getStatus());
   ipcMain.handle("diagnostics:get", () => runtime.getDiagnostics());
+  ipcMain.handle("updates:get", () => updates.getStatus());
+  ipcMain.handle("updates:check", () => updates.check());
+  ipcMain.handle("updates:download", () => updates.download());
+  ipcMain.handle("updates:install", () => updates.install());
   ipcMain.handle("session:start", () => coordinator.start());
   ipcMain.handle("session:stop", async () => {
     await runtime.stop();
@@ -145,5 +151,8 @@ export function registerIpc(
 
   coordinator.on("status-changed", (status) => {
     getPopover()?.webContents.send("session:status-changed", status);
+  });
+  updates.on("status-changed", (status) => {
+    getPopover()?.webContents.send("updates:status-changed", status);
   });
 }

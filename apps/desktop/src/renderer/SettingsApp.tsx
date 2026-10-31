@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { JSX } from "react";
-import type { Preferences } from "@eyemouse/shared-types";
+import type { Preferences, UpdateStatus } from "@eyemouse/shared-types";
 import { useMemo } from "react";
 
 export function SettingsApp(): JSX.Element {
@@ -8,11 +8,14 @@ export function SettingsApp(): JSX.Element {
   const [saved, setSaved] = useState(false);
   const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
   const [displays, setDisplays] = useState<Array<{ displayId: string; width: number; height: number }>>([]);
+  const [updates, setUpdates] = useState<UpdateStatus | null>(null);
 
   useEffect(() => {
     void window.eyemouse.getPreferences().then(setPreferences);
     void navigator.mediaDevices?.enumerateDevices().then((devices) => setCameras(devices.filter((device) => device.kind === "videoinput")));
     void window.eyemouse.getDisplays().then(setDisplays);
+    void window.eyemouse.getUpdateStatus().then(setUpdates);
+    return window.eyemouse.onUpdateStatusChanged(setUpdates);
   }, []);
 
   const cameraOptions = useMemo(() => cameras.map((camera, index) => ({ id: camera.deviceId, label: camera.label || `Camera ${index + 1}` })), [cameras]);
@@ -44,6 +47,10 @@ export function SettingsApp(): JSX.Element {
         <h2>Startup and privacy</h2>
         <label className="settings-check"><input type="checkbox" checked={preferences.launchAtLogin} onChange={(event) => void update({ launchAtLogin: event.target.checked })} /><span><strong>Launch at login</strong><small>Start as a menu-bar utility after you sign in.</small></span></label>
         <p className="settings-note">Camera frames, landmarks, calibration data and pointer decisions stay on this Mac. EyeMouse does not upload them.</p>
+      </section>
+      <section className="settings-section">
+        <h2>Updates</h2>
+        <div className="settings-update-row"><span><strong>{updates?.state === "disabled" ? "Release updates disabled" : updates?.state === "available" ? `Version ${updates.version} available` : updates?.state === "downloaded" ? `Version ${updates.version} ready` : "EyeMouse updates"}</strong><small>{updates?.message ?? "Check for signed releases."}</small></span><span className="settings-update-actions">{updates?.state === "available" ? <button className="secondary-button" onClick={() => void window.eyemouse.downloadUpdate()}>Download</button> : updates?.state === "downloaded" ? <button className="secondary-button" onClick={() => void window.eyemouse.installUpdate()}>Restart to install</button> : <button className="secondary-button" disabled={updates?.state === "disabled" || updates?.state === "checking"} onClick={() => void window.eyemouse.checkForUpdates()}>{updates?.state === "checking" ? "Checking…" : "Check now"}</button>}</span></div>
       </section>
       <footer className="settings-footer"><span>{saved ? "Saved" : "Changes apply immediately"}</span><button className="secondary-button" onClick={() => void window.eyemouse.openAccessibilitySettings()}>Accessibility settings</button></footer>
     </main>

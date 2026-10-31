@@ -9,6 +9,7 @@ import { MacOSInputAdapter } from "./native/macos-input";
 import { PointerController } from "@eyemouse/pointer-controller";
 import { TrackingRuntime } from "./tracking-runtime";
 import { CalibrationStore, matchesDisplay } from "./calibration/calibration-store";
+import { UpdateManager } from "./update-manager";
 
 let popover: ReturnType<typeof createPopover> | null = null;
 let tray: ReturnType<typeof createTray> | null = null;
@@ -97,6 +98,7 @@ app.whenReady().then(async () => {
   app.setLoginItemSettings({ openAtLogin: preferences.launchAtLogin });
 
   const coordinator = new SessionCoordinator();
+  const updates = new UpdateManager();
   const calibrationStore = new CalibrationStore(join(app.getPath("userData"), "calibration.json"));
   const storedCalibration = await calibrationStore.load();
   const display = preferences.calibrationDisplayId
@@ -115,7 +117,8 @@ app.whenReady().then(async () => {
   }
   popover = createPopover();
   tray = createTray(popover, () => app.quit());
-  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, openSettingsWindow, trackingRuntime, nativeInput, calibrationStore);
+  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, openSettingsWindow, trackingRuntime, nativeInput, calibrationStore, updates);
+  if (updates.getStatus().state !== "disabled" && app.isPackaged) void updates.check();
   if (!preferences.onboardingComplete) openUtilityWindow("onboarding");
 
   app.on("activate", () => {

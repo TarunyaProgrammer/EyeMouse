@@ -23,6 +23,7 @@
     "@eyemouse/vision": "workspace:*",
     "@mediapipe/tasks-vision": "^1.2.0",
     "@vitejs/plugin-react": "^4.4.1",
+    "electron-updater": "^6.8.11",
     "electron-vite": "^4.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -32,8 +33,8 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "electron-builder": "^26.18.0",
     "electron": "^38.0.0",
+    "electron-builder": "^26.18.0",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   },
@@ -41,21 +42,35 @@
     "appId": "com.eyemouse.desktop",
     "productName": "EyeMouse",
     "asar": true,
-    "files": ["out/**/*", "package.json"],
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
     "extraResources": [
       {
         "from": "../../native/macos/input/eyemouse-input",
         "to": "native/eyemouse-input",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
       "category": "public.app-category.utilities",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "TarunyaProgrammer",
+      "repo": "EyeMouse",
+      "releaseType": "release"
     },
     "dmg": {
       "title": "EyeMouse"

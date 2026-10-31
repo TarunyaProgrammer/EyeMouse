@@ -112,6 +112,13 @@ describe("interaction safety", () => {
     expect(events[0]?.type).toBe("LEFT_CLICK");
   });
 
+  it("maps a prolonged unilateral wink to drag start and release", () => {
+    const wink = new WinkRecognizer({ dragHoldMs: 300 });
+    expect(wink.observe(observation(0, 0.1, 0.8))).toHaveLength(0);
+    expect(wink.observe(observation(320, 0.1, 0.8))[0]?.type).toBe("DRAG_START");
+    expect(wink.observe(observation(500, 0.8, 0.8))[0]?.type).toBe("DRAG_END");
+  });
+
   it("requires stable fixation for dwell", () => {
     const dwell = new DwellRecognizer({ durationMs: 100 });
     expect(dwell.observe({ ...observation(0, 0.8, 0.8), fixationStable: true })).toHaveLength(0);

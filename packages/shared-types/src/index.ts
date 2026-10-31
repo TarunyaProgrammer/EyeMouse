@@ -56,9 +56,21 @@ export interface DiagnosticsSnapshot {
   lastRecoveryRecommendation: string | null;
 }
 
+export type UpdateState = "disabled" | "idle" | "checking" | "available" | "downloading" | "downloaded" | "error";
+
+export interface UpdateStatus {
+  state: UpdateState;
+  version: string | null;
+  message: string | null;
+}
+
 export interface EyeMouseAPI {
   getSessionStatus(): Promise<SessionStatus>;
   getDiagnostics(): Promise<DiagnosticsSnapshot>;
+  getUpdateStatus(): Promise<UpdateStatus>;
+  checkForUpdates(): Promise<UpdateStatus>;
+  downloadUpdate(): Promise<UpdateStatus>;
+  installUpdate(): Promise<void>;
   startSession(): Promise<SessionStatus>;
   stopSession(): Promise<SessionStatus>;
   pauseSession(): Promise<SessionStatus>;
@@ -78,6 +90,7 @@ export interface EyeMouseAPI {
   getPreferences(): Promise<Preferences>;
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>;
   onSessionStatusChanged(listener: (status: SessionStatus) => void): () => void;
+  onUpdateStatusChanged(listener: (status: UpdateStatus) => void): () => void;
 }
 
 export interface Point2D {

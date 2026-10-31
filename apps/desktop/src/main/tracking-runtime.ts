@@ -55,6 +55,7 @@ export class TrackingRuntime {
     const quality = this.qualityEngine.evaluate(qualityInput);
     this.lastQuality = quality;
     this.coordinator.setTrackingQuality(quality.state, quality.estimatedErrorPx);
+    if (quality.state === "lost") await this.pointer.stop();
     const point = this.applySensitivity(this.model.predict(observation.normalizedFeatures));
     const bounds = this.screenBounds;
     const normalizedPoint = bounds

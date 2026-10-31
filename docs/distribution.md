@@ -14,3 +14,11 @@ The local validation is intentionally unsigned when no Developer ID identity is 
 2. Apple notarization credentials (`APPLE_ID`, app-specific password and team ID, or an equivalent keychain profile);
 3. a signed-build smoke test covering camera permission, Accessibility refusal, login startup and native helper launch;
 4. an update feed and release artifact hosting policy.
+
+For a signed release app, verify the final bundle before distribution:
+
+```sh
+scripts/verify-macos-app.sh "dist/mac-arm64/EyeMouse.app"
+```
+
+The verifier checks the app signature, the bundled native helper signature and Gatekeeper assessment. It is expected to fail on unsigned local artifacts produced without a Developer ID identity.

@@ -8,6 +8,7 @@
     "build": "pnpm --filter @eyemouse/desktop build",
     "build:native": "./scripts/build-native-input.sh",
     "package:mac": "pnpm --filter @eyemouse/desktop package:mac",
+    "verify:mac": "./scripts/verify-macos-app.sh",
     "test": "pnpm --filter @eyemouse/desktop test",
     "typecheck": "pnpm --filter @eyemouse/desktop typecheck"
   }

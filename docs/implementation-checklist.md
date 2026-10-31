@@ -20,6 +20,7 @@
 - [x] Login-start preference wiring.
 - [x] Dedicated settings window for interaction, camera and startup preferences.
 - [x] First-run privacy and permission onboarding.
+- [x] Guided onboarding camera check, calibration launch and Accessibility check.
 - [x] Unit tests for lifecycle transitions.
 - [ ] Add signed-build verification for login startup.
 
@@ -54,7 +55,9 @@
 - [x] Emergency pause control, quality-state transitions and pointer outlier/dead-zone guards.
 - [x] Quality state engine with hysteresis.
 - [x] Gesture state machines.
+- [x] Prolonged-wink drag start/end gesture with safe release on tracking loss.
 - [x] Runtime interaction IPC and diagnostics metrics.
 - [ ] Accessibility and extended-session evaluation.
 - [x] Unsigned DMG/ZIP packaging with native helper and local model assets.
-- [ ] Developer ID signing, notarization and update feed.
+- [x] Opt-in GitHub release update mechanism and signed-artifact verification script.
+- [ ] Developer ID signing and notarization.
