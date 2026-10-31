@@ -5,6 +5,9 @@ import { SessionCoordinator } from "./session/session-coordinator";
 import { SettingsStore } from "./settings/settings-store";
 import { createTray } from "./tray/tray-controller";
 import { createPopover } from "./windows/popover";
+import { MacOSInputAdapter } from "./native/macos-input";
+import { PointerController } from "@eyemouse/pointer-controller";
+import { TrackingRuntime } from "./tracking-runtime";
 
 let popover: ReturnType<typeof createPopover> | null = null;
 let tray: ReturnType<typeof createTray> | null = null;
@@ -50,9 +53,12 @@ app.whenReady().then(async () => {
   app.setLoginItemSettings({ openAtLogin: preferences.launchAtLogin });
 
   const coordinator = new SessionCoordinator();
+  const nativeInput = new MacOSInputAdapter();
+  const pointerController = new PointerController(nativeInput);
+  const trackingRuntime = new TrackingRuntime(coordinator, pointerController);
   popover = createPopover();
   tray = createTray(popover, () => app.quit());
-  registerIpc(coordinator, settings, () => popover, openCalibrationWindow);
+  registerIpc(coordinator, settings, () => popover, openCalibrationWindow, trackingRuntime, nativeInput);
 
   app.on("activate", () => {
     if (popover && tray) {

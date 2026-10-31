@@ -105,6 +105,10 @@ export function App(): JSX.Element {
     startVisionPipeline();
   }, [status?.state, status?.calibrationStatus]);
 
+  useEffect(() => {
+    if (status?.state === "TRACKING_ACTIVE") void window.eyemouse.checkNativeInput();
+  }, [status?.state]);
+
   function startVisionPipeline(): void {
     const video = cameraManager.current.getVideo();
     if (!video) return;
@@ -129,6 +133,7 @@ export function App(): JSX.Element {
         fps: frameTimes.current.length,
         error: quality.state === "lost" ? quality.recoveryRecommendation : null
       });
+      void window.eyemouse.publishObservation(observation);
     }, (message) => {
       setDiagnostics((current) => ({ ...current, error: message }));
     });
@@ -233,6 +238,15 @@ export function App(): JSX.Element {
           <span className="notice-mark">i</span>
           <p>{diagnostics.error ?? "Live face landmarks are running locally. Calibration is required before cursor control can be enabled."}</p>
           <button className="notice-action" onClick={() => void openCalibration()}>Calibrate</button>
+        </div>
+      )}
+
+      {status.state === "TRACKING_ACTIVE" && !status.nativeInputAuthorized && (
+        <div className="notice">
+          <span className="notice-mark">!</span>
+          <p>Calibration is valid, but macOS Accessibility permission is required before EyeMouse can move the cursor.</p>
+          <button className="notice-action" onClick={() => void window.eyemouse.openAccessibilitySettings()}>Open Settings</button>
+          <button className="notice-action" onClick={() => void window.eyemouse.checkNativeInput()}>Check</button>
         </div>
       )}
 

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from "electron";
-import type { CalibrationResultSummary, EyeMouseAPI, Preferences, ScreenBounds, SessionStatus } from "@eyemouse/shared-types";
+import type { CalibrationResultSummary, EyeMouseAPI, EyeTrackingObservation, Preferences, ScreenBounds, SessionStatus } from "@eyemouse/shared-types";
 
 const api: EyeMouseAPI = {
   getSessionStatus: () => ipcRenderer.invoke("session:get-status"),
@@ -13,6 +13,9 @@ const api: EyeMouseAPI = {
   openCalibration: () => ipcRenderer.invoke("calibration:open"),
   getCalibrationScreen: (): Promise<ScreenBounds> => ipcRenderer.invoke("calibration:get-screen"),
   completeCalibration: (result: CalibrationResultSummary) => ipcRenderer.invoke("calibration:complete", result),
+  publishObservation: (observation: EyeTrackingObservation) => ipcRenderer.invoke("tracking:observation", observation),
+  checkNativeInput: () => ipcRenderer.invoke("native:check"),
+  openAccessibilitySettings: () => ipcRenderer.invoke("native:open-settings"),
   getPreferences: () => ipcRenderer.invoke("preferences:get"),
   setPreferences: (patch: Partial<Preferences>) => ipcRenderer.invoke("preferences:set", patch),
   onSessionStatusChanged: (listener: (status: SessionStatus) => void) => {

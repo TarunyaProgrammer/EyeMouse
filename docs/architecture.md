@@ -44,6 +44,7 @@ The first algorithm packages now exist as executable boundaries:
 - `tracking-quality`: independent quality dimensions and hysteretic GOOD/DEGRADED/LOST decisions.
 - `interaction-engine`: wink/blink rejection, dwell timing and event safety filtering.
 - `pointer-controller`: One Euro smoothing, movement policy and native adapter contract.
+- `TrackingRuntime`: main-process model prediction, quality evaluation and movement gating.
 
 ## Module responsibilities
 

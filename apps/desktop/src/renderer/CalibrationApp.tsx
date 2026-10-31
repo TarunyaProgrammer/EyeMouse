@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { JSX } from "react";
 import { createCalibrationTargets, fitCalibration, StableSampleCollector, type CalibrationSample, type CalibrationTarget } from "@eyemouse/calibration";
+import { serializeRegressionModel } from "@eyemouse/gaze-estimation";
 import type { ScreenBounds } from "@eyemouse/shared-types";
 import { CameraManager } from "./camera-manager";
 import { VisionPipeline } from "./vision-pipeline";
@@ -105,7 +106,9 @@ export function CalibrationApp(): JSX.Element {
         calibrationId: result.id,
         displayId: screenBounds.displayId,
         validationErrorPx,
-        accepted
+        accepted,
+        model: serializeRegressionModel(result.model),
+        screenBounds
       });
       setMessage(accepted
         ? `Calibration complete. Held-out 95th percentile error: ${Math.round(validationErrorPx)} px.`

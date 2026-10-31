@@ -55,6 +55,9 @@ export interface EyeMouseAPI {
   openCalibration(): Promise<void>;
   getCalibrationScreen(): Promise<ScreenBounds>;
   completeCalibration(result: CalibrationResultSummary): Promise<SessionStatus>;
+  publishObservation(observation: EyeTrackingObservation): Promise<void>;
+  checkNativeInput(): Promise<SessionStatus>;
+  openAccessibilitySettings(): Promise<void>;
   getPreferences(): Promise<Preferences>;
   setPreferences(patch: Partial<Preferences>): Promise<Preferences>;
   onSessionStatusChanged(listener: (status: SessionStatus) => void): () => void;
@@ -78,6 +81,16 @@ export interface CalibrationResultSummary {
   displayId: string;
   validationErrorPx: number;
   accepted: boolean;
+  model: CalibrationModelSnapshot;
+  screenBounds: ScreenBounds;
+}
+
+export interface CalibrationModelSnapshot {
+  featureCount: number;
+  degree: 1 | 2;
+  lambda: number;
+  coefficientsX: readonly number[];
+  coefficientsY: readonly number[];
 }
 
 export interface EyeTrackingObservation {

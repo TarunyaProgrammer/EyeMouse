@@ -1,4 +1,4 @@
-import type { Point2D } from "@eyemouse/shared-types";
+import type { CalibrationModelSnapshot, Point2D } from "@eyemouse/shared-types";
 
 export interface RegressionSample {
   features: readonly number[];
@@ -12,6 +12,35 @@ export interface RegressionModel {
   readonly coefficientsX: readonly number[];
   readonly coefficientsY: readonly number[];
   predict(features: readonly number[]): Point2D;
+}
+
+export function serializeRegressionModel(model: RegressionModel): CalibrationModelSnapshot {
+  return {
+    featureCount: model.featureCount,
+    degree: model.degree,
+    lambda: model.lambda,
+    coefficientsX: [...model.coefficientsX],
+    coefficientsY: [...model.coefficientsY]
+  };
+}
+
+export function deserializeRegressionModel(snapshot: CalibrationModelSnapshot): RegressionModel {
+  if (snapshot.coefficientsX.length !== snapshot.coefficientsY.length || snapshot.featureCount < 1) throw new Error("Invalid regression model snapshot.");
+  return {
+    featureCount: snapshot.featureCount,
+    degree: snapshot.degree,
+    lambda: snapshot.lambda,
+    coefficientsX: [...snapshot.coefficientsX],
+    coefficientsY: [...snapshot.coefficientsY],
+    predict(features) {
+      if (features.length !== snapshot.featureCount) throw new Error("Feature dimensions must match.");
+      const basis = polynomialFeatures(features, snapshot.degree);
+      return {
+        x: basis.reduce((sum, value, index) => sum + value * snapshot.coefficientsX[index], 0),
+        y: basis.reduce((sum, value, index) => sum + value * snapshot.coefficientsY[index], 0)
+      };
+    }
+  };
 }
 
 function polynomialFeatures(features: readonly number[], degree: 1 | 2): number[] {

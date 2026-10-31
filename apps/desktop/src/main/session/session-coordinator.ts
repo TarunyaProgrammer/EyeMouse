@@ -143,6 +143,15 @@ export class SessionCoordinator extends EventEmitter {
     return this.publish();
   }
 
+  setTrackingQuality(quality: TrackingQualityState, estimatedErrorPx: number | null): SessionStatus {
+    this.trackingQuality = quality;
+    this.estimatedErrorPx = estimatedErrorPx;
+    if (quality === "lost" && this.machine.state === "TRACKING_ACTIVE") this.message = "Tracking lost. Cursor input is paused until stable tracking returns.";
+    if (quality === "degraded" && this.machine.state === "TRACKING_ACTIVE") this.message = "Tracking degraded. Cursor movement is cautious and clicks are suppressed.";
+    if (quality === "good" && this.machine.state === "TRACKING_ACTIVE" && this.nativeInputAuthorized) this.message = "Tracking active. Cursor input is enabled.";
+    return this.publish();
+  }
+
   private publish(): SessionStatus {
     const status = this.getStatus();
     this.emit("status-changed", status);

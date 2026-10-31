@@ -45,9 +45,9 @@
 - [x] One Euro smoothing primitive.
 - [x] Wink, blink rejection and dwell state machines.
 - [x] Quality-gated interaction event filtering.
-- [ ] Native macOS input adapter.
+- [x] Native macOS input helper and main-process adapter.
 - [x] Swift/CoreGraphics input helper compiles and refuses commands without Accessibility permission.
-- [ ] Centralized runtime safety controller integration.
+- [x] Centralized runtime safety controller integration for movement.
 - [x] Quality state engine with hysteresis.
 - [x] Gesture state machines.
 - [ ] Accessibility and extended-session evaluation.
